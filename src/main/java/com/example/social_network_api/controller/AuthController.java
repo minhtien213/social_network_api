@@ -74,8 +74,10 @@ public class AuthController {
         try {
             User user = userService.save(userMapper.toUser(userDTO));
             return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toUserDTO(user));
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
+        }catch (RuntimeException e){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(e.getMessage());
         }
     }
 

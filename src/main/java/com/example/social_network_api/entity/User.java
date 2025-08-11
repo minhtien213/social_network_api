@@ -36,8 +36,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String avatarUrl;
-
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "users_id"),
@@ -54,21 +52,19 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-//    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Post> posts;
-//
-//    // Quan hệ 1:N với Comment
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Comment> comments;
-//
-//    // Quan hệ N:M Likes
-//    @ManyToMany
-//    @JoinTable(
-//            name = "likes",
-//            joinColumns = @JoinColumn(name = "user_id"),
-//            inverseJoinColumns = @JoinColumn(name = "post_id")
-//    )
-//    private List<Post> likedPosts;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Profile profile;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts;
+
+    // Quan hệ 1:N với Comment
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments;
+
+    // Quan hệ 1:N với Like
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likes;
 
     // Quan hệ N:M self join Follows
     @ManyToMany
