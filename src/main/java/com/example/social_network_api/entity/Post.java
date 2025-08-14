@@ -19,7 +19,8 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String content;
-    private String media_url;
+    @Column(name = "media_url")
+    private String mediaUrl;
 
     @Column(nullable = false,  updatable = false)
     private LocalDateTime createdAt;
@@ -31,6 +32,7 @@ public class Post {
             CascadeType.PERSIST,
             CascadeType.MERGE
     })
+    @JoinColumn(name = "user_id")
     private User user;
 
     @OneToMany(mappedBy = "post",  cascade = CascadeType.ALL, orphanRemoval = true)

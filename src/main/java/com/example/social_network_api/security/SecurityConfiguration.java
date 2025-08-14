@@ -68,6 +68,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/user/list-users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/user/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/post/create").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated() // Các request khác phải có token hợp lệ
                 )
                 .authenticationProvider(authenticationProvider()) // Provider dùng DB + BCrypt
