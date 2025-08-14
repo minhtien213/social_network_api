@@ -19,8 +19,8 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String content;
-    @Column(name = "media_url")
-    private String mediaUrl;
+    @Column(name = "media_urls")
+    private String mediaUrls;
 
     @Column(nullable = false,  updatable = false)
     private LocalDateTime createdAt;

@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PostService extends IService<Post> {
     Post createPost(PostRequestDTO postRequestDTO, String username);
+    Post updatePost(Long id, PostRequestDTO postRequestDTO, String username);
 }
 

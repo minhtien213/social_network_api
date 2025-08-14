@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class PostResponseDTO {
     public String content;
     public String username;
-    public String mediaUrl;
+    public String mediaUrls;
     public LocalDateTime createdAt;
     public LocalDateTime updatedAt;
 }

@@ -13,12 +13,15 @@ import com.example.social_network_api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +35,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Post save(Post post) {
-        return null;
+        return postRepository.save(post);
     }
 
     @Override
@@ -42,56 +45,110 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public void deleteById(Long id) {
-
+        Post post = postRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("Post with id " + id + " not found")
+        );
+        postRepository.delete(post);
     }
 
     @Override
     public List<Post> findAll() {
-        return List.of();
+        return postRepository.findAll();
     }
 
     @Override
     public Post findById(Long id) {
-        return null;
+        Post post = postRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("Post with id " + id + " not found")
+        );
+        return post;
     }
+
 
     @Override
     public Post createPost(PostRequestDTO postRequestDTO, String username) {
-
-        // Lấy user tạo post
         User user = userService.findByUsername(username);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
 
-        String mediaPath = null;
+        //list rỗng để lưu đường dẫn (String) của các ảnh sau khi upload
+        List<String> mediaPaths = new ArrayList<>();
 
-        // Xử lý file nếu có
-        if (postRequestDTO.getMediaUrl() != null && !postRequestDTO.getMediaUrl().isEmpty()) {
+        //kiểm tra xem người dùng có gửi ảnh lên không
+        if (postRequestDTO.getMediaUrls() != null && !postRequestDTO.getMediaUrls().isEmpty()) {
             try {
-                // Tạo folder uploads nếu chưa tồn tại
+                //tạo đối tượng Path trỏ tới thư mục "uploads".
+                Path uploadDir = Paths.get("uploads");
+                if (!Files.exists(uploadDir)) {
+                    //nếu thư mục "uploads" chưa tồn tại → tạo mới
+                    Files.createDirectories(uploadDir);
+                }
+
+                //duyệt qua từng file
+                for (MultipartFile file : postRequestDTO.getMediaUrls()) {
+                    //check nếu không tải lên file nào
+                    if (file != null && !file.isEmpty()){
+                        //lấy tên file string (tạo chuối radom + tên file gốc từ client)
+                        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                        //resolve nối (an toàn) tên file vào đường dẫn thư mục uploads (uploads/0a12b-uuid_anh1.png)
+                        Path filePath = uploadDir.resolve(fileName);
+                        //đọc dữ liệu từ file upload (getInputStream()) và ghi vào đường dẫn filePath
+                        Files.copy(file.getInputStream(), filePath);
+                        //thêm tên file vào list
+                        mediaPaths.add("/uploads/" + fileName);
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot save files: " + e.getMessage());
+            }
+        }
+
+        //gộp tất cả đường dẫn trong mediaPaths thành một chuỗi duy nhất, cách nhau bằng dấu phẩy
+        //chuyển list thành string (join) vì trong entity lưu string
+        //chuyển string thành list (split)
+        String mediaPathString = String.join(",", mediaPaths);
+
+        Post post = postMapper.toPost(postRequestDTO, user, mediaPathString);
+        return postRepository.save(post);
+    }
+
+    public Post updatePost(Long id, PostRequestDTO postRequestDTO, String username) {
+        Post post = postRepository.findById(id).orElseThrow(
+                () -> new RuntimeException("Post with id " + id + " not found")
+        );
+        if(!post.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Unauthorized user");
+        }
+
+        List<String> mediaPaths = new ArrayList<>();
+        if(postRequestDTO.getMediaUrls() != null && !postRequestDTO.getMediaUrls().isEmpty()){
+            try {
                 Path uploadDir = Paths.get("uploads");
                 if (!Files.exists(uploadDir)) {
                     Files.createDirectories(uploadDir);
                 }
 
-                // Tạo tên file duy nhất
-                String fileName = UUID.randomUUID() + "_" + postRequestDTO.getMediaUrl().getOriginalFilename();
-                Path filePath = uploadDir.resolve(fileName);
-
-                // Lưu file
-                Files.copy(postRequestDTO.getMediaUrl().getInputStream(), filePath);
-
-                // Lưu path để lưu vào DB
-                mediaPath = "/uploads/" + fileName;
-            } catch (IOException e) {
-                throw new RuntimeException("Cannot save file: " + e.getMessage());
+                for(MultipartFile file : postRequestDTO.getMediaUrls()){
+                    if(file != null && !file.isEmpty()){
+                        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+                        Path filePath = uploadDir.resolve(fileName);
+                        Files.copy(file.getInputStream(), filePath);
+                        mediaPaths.add("/uploads/" + fileName);
+                    }
+                }
+            }catch (Exception e){
+                throw new RuntimeException("Cannot save files: " + e.getMessage());
             }
         }
-
-        // dùng mapper để map từ DTO -> entity
-        Post post = postMapper.toPost(postRequestDTO, user, mediaPath);
-
+        if(post.getMediaUrls() != null && !post.getMediaUrls().isEmpty()){
+            String[] existingFile = post.getMediaUrls().split(","); //chuỗi -> mảng
+            mediaPaths.addAll(Arrays.asList(existingFile));
+        }
+        String mediaPathString = String.join(",", mediaPaths); //mảng -> chuỗi
+        post.setContent(postRequestDTO.getContent());
+        post.setMediaUrls(mediaPathString);
+        post.setUpdatedAt(LocalDateTime.now());
         return postRepository.save(post);
     }
 }
