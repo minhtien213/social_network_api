@@ -77,9 +77,9 @@ public class PostServiceImpl implements PostService {
             throw new RuntimeException("User not found");
         }
         //list link file ảnh (string)
-        String mediaPathString = UploadsUtils.uploadFiles(postRequestDTO.getMediaUrls());
+        String mediaPathsString = UploadsUtils.uploadFiles(postRequestDTO.getMediaUrls());
 
-        Post post = postMapper.toPost(postRequestDTO, user, mediaPathString);
+        Post post = postMapper.toPost(postRequestDTO, user, mediaPathsString);
         return postRepository.save(post);
     }
 
@@ -92,33 +92,14 @@ public class PostServiceImpl implements PostService {
             throw new RuntimeException("Unauthorized user");
         }
 
-        List<String> mediaPaths = new ArrayList<>();
-        if (postRequestDTO.getMediaUrls() != null && !postRequestDTO.getMediaUrls().isEmpty()) {
-            try {
-                Path uploadDir = Paths.get("uploads");
-                if (!Files.exists(uploadDir)) {
-                    Files.createDirectories(uploadDir);
-                }
+        String mediaPathsString = UploadsUtils.uploadFiles(postRequestDTO.getMediaUrls());
 
-                for (MultipartFile file : postRequestDTO.getMediaUrls()) {
-                    if (file != null && !file.isEmpty()) {
-                        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                        Path filePath = uploadDir.resolve(fileName);
-                        Files.copy(file.getInputStream(), filePath);
-                        mediaPaths.add("/uploads/" + fileName);
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Cannot save files: " + e.getMessage());
-            }
-        }
         if (existingPost.getMediaUrls() != null && !existingPost.getMediaUrls().isEmpty()) {
-            String[] existingFile = existingPost.getMediaUrls().split(","); //chuỗi -> mảng
-            mediaPaths.addAll(Arrays.asList(existingFile));
+            String existingFile = existingPost.getMediaUrls();
+            mediaPathsString.concat(existingFile);
         }
-        String mediaPathString = String.join(",", mediaPaths); //mảng -> chuỗi
         existingPost.setContent(postRequestDTO.getContent());
-        existingPost.setMediaUrls(mediaPathString);
+        existingPost.setMediaUrls(mediaPathsString);
         existingPost.setUpdatedAt(LocalDateTime.now());
         return postRepository.save(existingPost);
     }

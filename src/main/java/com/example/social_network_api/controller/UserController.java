@@ -1,12 +1,12 @@
 package com.example.social_network_api.controller;
 
-import com.example.social_network_api.dto.request.UserDTO;
+import com.example.social_network_api.dto.request.UserRequestDTO;
+import com.example.social_network_api.dto.respone.UserResponseDTO;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +26,7 @@ public class UserController {
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         try {
             User user = userService.findById(id);
-            return ResponseEntity.status(HttpStatus.OK).body(userMapper.toUserDTO(user));
+            return ResponseEntity.status(HttpStatus.OK).body(userMapper.toUserResponseDTO(user));
         }catch (Exception e){
             return ResponseEntity.badRequest().body("Error: User not found");
         }
@@ -36,8 +36,9 @@ public class UserController {
     public ResponseEntity<?> getAllUsers() {
         try {
             List<User> users = userService.findAll();
-            List<UserDTO> userResponses = users.stream().map(user -> userMapper.toUserDTO(user)).collect(Collectors.toList());
-            return ResponseEntity.status(HttpStatus.OK).body(userResponses);
+            List<UserResponseDTO> usersResponse = users.stream()
+                    .map(user -> userMapper.toUserResponseDTO(user)).collect(Collectors.toList());
+            return ResponseEntity.status(HttpStatus.OK).body(usersResponse);
         }catch (Exception e){
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
@@ -76,10 +77,10 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id,
-                                        @Valid @RequestBody UserDTO userDTO) {
+                                        @Valid @RequestBody UserRequestDTO userRequestDTO) {
         try {
-            User updatedUser = userService.update(id, userMapper.toUser(userDTO));
-            return ResponseEntity.ok(userMapper.toUserDTO(updatedUser));
+            User updatedUser = userService.updateUser(id, userRequestDTO);
+            return ResponseEntity.ok(userMapper.toUserResponseDTO(updatedUser));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }

@@ -1,6 +1,6 @@
 package com.example.social_network_api.service.impl;
 
-import com.example.social_network_api.dto.request.UserDTO;
+import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.mapper.UserMapper;
@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -92,23 +90,60 @@ public class UserServiceImpl implements UserService {
 
 
     // Đăng ký user mới (nếu bạn có chức năng register)
-    @Override
+
     @Transactional
-    public User save(User user) {
-        if(userRepository.existsByUsername(user.getUsername())){
+    public User registerUser(UserRequestDTO userRequestDTO) {
+        if(userRepository.existsByUsername(userRequestDTO.getUsername())){
             throw new RuntimeException("Username already exists!");
         }
-        if(userRepository.existsByEmail(user.getEmail())){
+        if(userRepository.existsByEmail(userRequestDTO.getEmail())){
             throw new RuntimeException("Email already exists!");
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setEnabled(true);
+        userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
         Role defaultRole = roleService.findByName("ROLE_USER");
-        user.setRoles(List.of(defaultRole));
+        userRequestDTO.setRoles(List.of(defaultRole));
 
-        return  userRepository.save(user);
+        return  userRepository.save(userMapper.toUser(userRequestDTO));
     }
+
+    @Override
+    @Transactional
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User update(Long id, User user) {
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public User updateUser(Long id, UserRequestDTO userRequestDTO) {
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (userRepository.existsByUsernameAndIdNot(userRequestDTO.getUsername(), id)) {
+            throw new RuntimeException("Username already exists!");
+        }
+
+        if (userRepository.existsByEmailAndIdNot(userRequestDTO.getEmail(), id)) {
+            throw new RuntimeException("Email already exists!");
+        }
+
+        // Copy field từ user sang existingUser nhưng bỏ qua các field nhạy cảm
+        BeanUtils.copyProperties(
+                userRequestDTO,
+                existingUser,
+                "id", "password", "roles", "enabled", "createdAt"
+        );
+
+        existingUser.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+
+        return userRepository.save(existingUser);
+    }
+
 
     // Tìm user theo username
     @Override
@@ -155,31 +190,4 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(true);
         userRepository.save(user);
     }
-
-    @Override
-    @Transactional
-    public User update(Long id, User user) {
-        User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (userRepository.existsByUsernameAndIdNot(user.getUsername(), id)) {
-            throw new RuntimeException("Username already exists!");
-        }
-
-        if (userRepository.existsByEmailAndIdNot(user.getEmail(), id)) {
-            throw new RuntimeException("Email already exists!");
-        }
-
-        // Copy field từ `user` sang `existingUser` nhưng bỏ qua các field nhạy cảm
-        BeanUtils.copyProperties(
-                user,
-                existingUser,
-                "id", "password", "roles", "enabled", "createdAt"
-        );
-
-        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        return userRepository.save(existingUser);
-    }
-
 }

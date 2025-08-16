@@ -17,10 +17,10 @@ public interface PostMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", source = "user")
-    @Mapping(target = "mediaUrls", source = "mediaPathString")
+    @Mapping(target = "mediaUrls", source = "mediaPathsString")
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
     @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
-    Post toPost(PostRequestDTO postRequestDTO, User user, String mediaPathString);
+    Post toPost(PostRequestDTO postRequestDTO, User user, String mediaPathsString);
 
 
     @Mapping(target = "username", source = "user.username")

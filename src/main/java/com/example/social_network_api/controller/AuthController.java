@@ -1,9 +1,8 @@
 package com.example.social_network_api.controller;
 
 import com.example.social_network_api.dto.request.AuthRequest;
-import com.example.social_network_api.dto.request.UserDTO;
+import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.dto.respone.AuthResponse;
-import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.security.jwt.JWTUtils;
@@ -20,8 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/auth")
@@ -70,10 +67,10 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
         try {
-            User user = userService.save(userMapper.toUser(userDTO));
-            return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toUserDTO(user));
+            User SavedUser = userService.registerUser(userRequestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toUserResponseDTO(SavedUser));
         }catch (RuntimeException e){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
