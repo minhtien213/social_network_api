@@ -23,7 +23,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findById(@PathVariable Long id) {
+    public ResponseEntity<?> getUser(@PathVariable Long id) {
         try {
             User user = userService.findById(id);
             return ResponseEntity.status(HttpStatus.OK).body(userMapper.toUserDTO(user));
@@ -33,7 +33,7 @@ public class UserController {
     }
 
     @GetMapping("/list-users")
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<?> getAllUsers() {
         try {
             List<User> users = userService.findAll();
             List<UserDTO> userResponses = users.stream().map(user -> userMapper.toUserDTO(user)).collect(Collectors.toList());
@@ -64,7 +64,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUserById(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
             userService.deleteById(id);
             return ResponseEntity.ok("User has been deleted");

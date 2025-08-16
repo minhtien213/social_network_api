@@ -91,4 +91,13 @@ public class User {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public int getFollowingCount(){
+        return following.size();
+    }
+
+    public int getFollowerCount(){
+        return followers.size();
+    }
+
 }

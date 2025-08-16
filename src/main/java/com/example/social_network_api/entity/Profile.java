@@ -1,10 +1,11 @@
 package com.example.social_network_api.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "profile")
@@ -19,19 +20,19 @@ public class Profile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @Column(name = "fullname")
     private String fullName;
-
     private String bio;
     @Column(name = "avatarurl")
     private String avatarUrl;
-    private Date birthday;
+    @JsonFormat(pattern = "dd/MM/yyyy")
+    private LocalDate birthday;
     private boolean gender;
     private String location;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

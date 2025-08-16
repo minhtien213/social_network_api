@@ -15,7 +15,6 @@ public interface PostMapper {
     //target là field muốn map vào
     //source là dữ liệu sẽ map vào target
 
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", source = "user")
     @Mapping(target = "mediaUrls", source = "mediaPathString")

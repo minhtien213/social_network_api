@@ -46,7 +46,7 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> findById(@PathVariable Long id){
+    public ResponseEntity<?> getPost(@PathVariable Long id){
         try{
             Post post = postService.findById(id);
             return ResponseEntity.ok(postMapper.toPostResponseDTO(post));
@@ -56,7 +56,7 @@ public class PostController {
     }
 
     @GetMapping("/list-posts")
-    public ResponseEntity<?> findAllPost(){
+    public ResponseEntity<?> getAllPosts(){
         try{
             List<Post> posts = postService. findAll();
             List<PostResponseDTO> postResponseDTO = posts.stream()

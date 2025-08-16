@@ -66,9 +66,26 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll() // Cho phép login không cần token
                         .requestMatchers("/auth/register").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/user/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/user/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/user/**").hasAnyRole("USER", "ADMIN")
+
                         .requestMatchers(HttpMethod.GET, "/api/user/list-users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/user/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/user/list-profiles").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/user/list-posts").hasRole("ADMIN")
+
                         .requestMatchers(HttpMethod.POST, "/api/post/create").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/profile/create").hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/user/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/post/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/profile/{id}").hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/user/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/post/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/profile/{id}").hasRole("ADMIN")
+
                         .anyRequest().authenticated() // Các request khác phải có token hợp lệ
                 )
                 .authenticationProvider(authenticationProvider()) // Provider dùng DB + BCrypt
