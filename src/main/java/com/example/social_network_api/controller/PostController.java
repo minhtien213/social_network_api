@@ -30,61 +30,51 @@ public class PostController {
 
     @PostMapping("/create")
     public ResponseEntity<?> createPost(
-            //client gởi lên 2 field: content - json / mediaUrls - MultipartFile
+            //client gởi lên 2 field: content - json / files - MultipartFile
             @Valid @RequestPart("content") String content,
-            @RequestPart(value = "mediaUrls", required = false) List<MultipartFile> mediaUrls,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files,
             Principal principal
     ) {
-        //chuyển sang dto
         PostRequestDTO postRequestDTO = new PostRequestDTO();
         postRequestDTO.setContent(content);
-        postRequestDTO.setMediaUrls(mediaUrls);
+        postRequestDTO.setFiles(files);
 
         Post savedPost = postService.createPost(postRequestDTO, principal.getName());
         return ResponseEntity.ok(postMapper.toPostResponseDTO(savedPost));
-
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> getPost(@PathVariable Long id){
-        try{
-            Post post = postService.findById(id);
-            return ResponseEntity.ok(postMapper.toPostResponseDTO(post));
-        }catch(Exception e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-
-    @GetMapping("/list-posts")
-    public ResponseEntity<?> getAllPosts(){
-        try{
-            List<Post> posts = postService. findAll();
-            List<PostResponseDTO> postResponseDTO = posts.stream()
-                    .map(post -> postMapper.toPostResponseDTO(post))
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(postResponseDTO);
-        }catch(Exception e){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable Long id){
-        postService.deleteById(id);
-        return ResponseEntity.ok("Post has been deleted");
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updatePost(@PathVariable Long id,
                                         @RequestPart("content") String content,
-                                        @RequestPart("mediaUrls") List<MultipartFile> mediaUrls,
+                                        @RequestPart(value = "files", required = false) List<MultipartFile> files,
                                         Principal principal
-                                        ){
+    ) {
         PostRequestDTO postRequestDTO = PostRequestDTO.builder()
                 .content(content)
-                .mediaUrls(mediaUrls)
+                .files(files)
                 .build();
         Post updatedPost = postService.updatePost(id, postRequestDTO, principal.getName());
         return ResponseEntity.ok(postMapper.toPostResponseDTO(updatedPost));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPost(@PathVariable Long id) {
+        Post post = postService.findById(id);
+        return ResponseEntity.ok(postMapper.toPostResponseDTO(post));
+    }
+
+    @GetMapping("/list-posts")
+    public ResponseEntity<?> getAllPosts() {
+        List<Post> posts = postService.findAll();
+        List<PostResponseDTO> postResponseDTO = posts.stream()
+                .map(post -> postMapper.toPostResponseDTO(post))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(postResponseDTO);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletePost(@PathVariable Long id) {
+        postService.deleteById(id);
+        return ResponseEntity.ok("Post has been deleted");
     }
 }

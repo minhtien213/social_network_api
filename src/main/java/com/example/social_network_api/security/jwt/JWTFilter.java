@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,8 +21,6 @@ import java.io.IOException;
 
 @Component
 public class JWTFilter extends OncePerRequestFilter {
-    // Logger để ghi log debug/info/error
-    private static final Logger logger = LoggerFactory.getLogger(JWTFilter.class);
 
     private final JWTUtils jwtUtils; // Class tiện ích để xử lý JWT (tạo, parse, validate)
     private final UserDetailsService userDetailsService; // Để load thông tin user từ DB
@@ -38,11 +37,11 @@ public class JWTFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 1️⃣ Lấy token từ Header "Authorization"
-        final String authHeader = request.getHeader("Authorization");
         String username = null;
         String token = null;
 
+        // 1️⃣ Lấy token từ Header "Authorization"
+        final String authHeader = request.getHeader("Authorization");
         // 2️⃣ Nếu header có dạng "Bearer abc.def.ghi" → cắt lấy token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7); // Bỏ chữ "Bearer "
@@ -50,14 +49,9 @@ public class JWTFilter extends OncePerRequestFilter {
                 // 3️⃣ Dùng JWTUtils để trích xuất username từ token
                 username = jwtUtils.extractUsername(token);
             } catch (Exception e) {
-                logger.error("Token parsing error: {}", e.getMessage());
+                throw new UsernameNotFoundException("Invalid token");
             }
         }
-
-        // 4️⃣ Log thông tin request + username từ token
-        logger.info("Request: {} {}, username from token: {}",
-                request.getMethod(), request.getRequestURI(), username);
-
         // 5️⃣ Kiểm tra:
         // - Có username từ token
         // - SecurityContext chưa có Authentication (nghĩa là user chưa đăng nhập)

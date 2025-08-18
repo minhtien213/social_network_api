@@ -2,6 +2,7 @@ package com.example.social_network_api.dto.respone;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 public class PostResponseDTO {
     public String content;
     public String username;
-    public String mediaUrls;
+    public List<String> postMediaList;
     public LocalDateTime createdAt;
     public LocalDateTime updatedAt;
 }

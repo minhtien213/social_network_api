@@ -4,8 +4,10 @@ import com.example.social_network_api.config.UploadsUtils;
 import com.example.social_network_api.dto.request.ProfileRequestDTO;
 import com.example.social_network_api.entity.Profile;
 import com.example.social_network_api.entity.User;
+import com.example.social_network_api.exception.custom.ResourceNotfoundException;
 import com.example.social_network_api.mapper.ProfileMapper;
 import com.example.social_network_api.repository.ProfileRepository;
+import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.ProfileService;
 import com.example.social_network_api.service.UserService;
 import jakarta.transaction.Transactional;
@@ -25,8 +27,8 @@ import java.util.UUID;
 public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
-    private final UserService userService;
     private final ProfileMapper profileMapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -42,14 +44,14 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Transactional
     public Profile createProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
-        User user = userService.findByUsername(username);
-        if (user == null) {
-            throw new RuntimeException("User not found");
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+
+        if(avatarUrl != null) {
+            String avatarPath = UploadsUtils.uploadFile(avatarUrl);
+            profileRequestDTO.setAvatarUrl(avatarPath);
         }
 
-        String avatarPath = UploadsUtils.uploadFile(avatarUrl);
-
-        profileRequestDTO.setAvatarUrl(avatarPath);
         Profile profileSaved = profileRepository.save(profileMapper.toProfile(profileRequestDTO, user));
         return profileSaved;
     }
@@ -63,8 +65,11 @@ public class ProfileServiceImpl implements ProfileService {
             throw new RuntimeException("Unauthorized attempt to update profile");
         }
 
-        String avatarPath = UploadsUtils.uploadFile(avatarUrl);
-        existingProfile.setAvatarUrl(avatarPath);
+        if(avatarUrl != null) {
+            String avatarPath = UploadsUtils.uploadFile(avatarUrl);
+            existingProfile.setAvatarUrl(avatarPath);
+        }
+
         existingProfile.setUpdatedAt(LocalDateTime.now());
         existingProfile.setFullName(profileRequestDTO.getFullName());
         existingProfile.setBio(profileRequestDTO.getBio());
@@ -79,20 +84,24 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional
     public void deleteById(Long id) {
         Profile profile = profileRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Profile with id " + id + " not found")
+                () -> new ResourceNotfoundException("Profile with id " + id + " not found")
         );
         profileRepository.deleteById(id);
     }
 
     @Override
     public List<Profile> findAll() {
-        return profileRepository.findAll();
+        List<Profile> profiles = profileRepository.findAll();
+        if(profiles.isEmpty()) {
+            throw new ResourceNotfoundException("No profiles found");
+        }
+        return profiles;
     }
 
     @Override
     public Profile findById(Long id) {
-        Profile profile = profileRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Profile with id " + id + " not found")
+        Profile profile = profileRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotfoundException("Profile with id " + id + " not found")
         );
         return profile;
     }

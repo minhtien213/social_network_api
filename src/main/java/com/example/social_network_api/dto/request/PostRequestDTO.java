@@ -13,5 +13,5 @@ import java.util.List;
 @Builder
 public class PostRequestDTO {
     public  String content;
-    private List<MultipartFile> mediaUrls; // chứa các file client gởi lên
+    private List<MultipartFile> files; // chứa các file client gởi lên
 }

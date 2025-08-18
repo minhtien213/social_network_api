@@ -3,11 +3,15 @@ package com.example.social_network_api.service.impl;
 import com.example.social_network_api.config.UploadsUtils;
 import com.example.social_network_api.dto.request.PostRequestDTO;
 import com.example.social_network_api.entity.Post;
+import com.example.social_network_api.entity.PostMedia;
 import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
+import com.example.social_network_api.exception.custom.ResourceNotfoundException;
+import com.example.social_network_api.exception.custom.UnauthorizedException;
 import com.example.social_network_api.mapper.PostMapper;
 import com.example.social_network_api.repository.PostRepository;
 import com.example.social_network_api.repository.RoleRepository;
+import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.PostService;
 import com.example.social_network_api.service.RoleService;
 import com.example.social_network_api.service.UserService;
@@ -32,8 +36,7 @@ import java.util.UUID;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final UserService userService;
-    private final PostMapper postMapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -50,7 +53,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deleteById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Post with id " + id + " not found")
+                () -> new ResourceNotfoundException("Post with id " + id + " not found")
         );
         postRepository.delete(post);
     }
@@ -63,7 +66,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public Post findById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Post with id " + id + " not found")
+                () -> new ResourceNotfoundException("Post with id " + id + " not found")
         );
         return post;
     }
@@ -72,35 +75,54 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public Post createPost(PostRequestDTO postRequestDTO, String username) {
-        User user = userService.findByUsername(username);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-        //list link file ảnh (string)
-        String mediaPathsString = UploadsUtils.uploadFiles(postRequestDTO.getMediaUrls());
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
 
-        Post post = postMapper.toPost(postRequestDTO, user, mediaPathsString);
+        Post post = new Post();
+        post.setContent(postRequestDTO.getContent());
+        post.setUser(user);
+
+        List<PostMedia> postMediaList = new ArrayList<>();
+
+        List<String> fileNames = UploadsUtils.uploadFiles(postRequestDTO.getFiles());
+        fileNames.forEach(fileName -> {
+            PostMedia postMedia = new PostMedia();
+            postMedia.setMediaUrl(fileName);
+            postMedia.setPost(post);
+            postMediaList.add(postMedia);
+        });
+
+        post.setPostMediaList(postMediaList);
+
         return postRepository.save(post);
     }
 
     @Transactional
     public Post updatePost(Long id, PostRequestDTO postRequestDTO, String username) {
         Post existingPost = postRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("Post with id " + id + " not found")
+                () -> new ResourceNotfoundException("Post with id " + id + " not found")
         );
+
         if (!existingPost.getUser().getUsername().equals(username)) {
-            throw new RuntimeException("Unauthorized user");
+            throw new UnauthorizedException("Unauthorized user");
         }
 
-        String mediaPathsString = UploadsUtils.uploadFiles(postRequestDTO.getMediaUrls());
-
-        if (existingPost.getMediaUrls() != null && !existingPost.getMediaUrls().isEmpty()) {
-            String existingFile = existingPost.getMediaUrls();
-            mediaPathsString.concat(existingFile);
-        }
         existingPost.setContent(postRequestDTO.getContent());
-        existingPost.setMediaUrls(mediaPathsString);
         existingPost.setUpdatedAt(LocalDateTime.now());
+
+        // nếu client gửi files mới
+        if (postRequestDTO.getFiles() != null) {
+            //clear hết media cũ rồi add lại
+            existingPost.getPostMediaList().clear();
+
+            List<String> fileNames = UploadsUtils.uploadFiles(postRequestDTO.getFiles());
+            fileNames.forEach(fileName -> {
+                PostMedia postMedia = new PostMedia();
+                postMedia.setMediaUrl(fileName);
+                postMedia.setPost(existingPost);
+                existingPost.getPostMediaList().add(postMedia);
+            });
+        }
         return postRepository.save(existingPost);
     }
 }

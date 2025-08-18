@@ -10,8 +10,6 @@ import com.example.social_network_api.service.RoleService;
 import com.example.social_network_api.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,8 +23,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-
     private final AuthenticationManager authenticationManager;
     private final JWTUtils jwtUtils;
     private final UserService userService;
@@ -35,8 +31,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
-        // Ghi log lại thông tin đăng nhập (chỉ log username, không log password vì lý do bảo mật)
-        logger.info("Login request: username={}", authRequest.getUsername());
 
         // 1️⃣ Gọi AuthenticationManager để xác thực username & password
         // - UsernamePasswordAuthenticationToken: gói username và password từ request vào object
@@ -68,14 +62,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        try {
-            User SavedUser = userService.registerUser(userRequestDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toUserResponseDTO(SavedUser));
-        }catch (RuntimeException e){
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage());
+            User savedUser = userService.registerUser(userRequestDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toUserResponseDTO(savedUser));
         }
-    }
 
 }

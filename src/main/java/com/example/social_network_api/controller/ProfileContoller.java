@@ -27,71 +27,50 @@ public class ProfileContoller {
 
     @PostMapping("/create")
     public ResponseEntity<?> createProfile(@Valid @RequestPart("profileRequestDTO") ProfileRequestDTO profileRequestDTO,
-                                           @RequestPart("avatarUrl") MultipartFile avatarUrl,
+                                           @RequestPart(value = "avatarUrl", required = false) MultipartFile avatarUrl,
                                            Principal principal) {
-        try {
-            Profile savedProfile = profileService.createProfile(profileRequestDTO, avatarUrl, principal.getName());
-            return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(
-                    savedProfile,
-                    savedProfile.getUser().getFollowerCount(),
-                    savedProfile.getUser().getFollowingCount())
-            );
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Profile savedProfile = profileService.createProfile(profileRequestDTO, avatarUrl, principal.getName());
+        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(
+                savedProfile,
+                savedProfile.getUser().getFollowerCount(),
+                savedProfile.getUser().getFollowingCount())
+        );
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateProfile(@PathVariable Long id,
                                            @Valid @RequestPart ProfileRequestDTO profileRequestDTO,
-                                           @RequestPart MultipartFile avatarUrl,
-                                           Principal principal
-                                           ){
-        try{
-            Profile updatedProfile = profileService.updateProfile(id, profileRequestDTO, avatarUrl, principal.getName());
-            return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(updatedProfile,
-                    updatedProfile.getUser().getFollowerCount(),
-                    updatedProfile.getUser().getFollowingCount()
-                    ));
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
+                                           @RequestPart(value = "avatarUrl", required = false) MultipartFile avatarUrl,
+                                           Principal principal) {
+        Profile updatedProfile = profileService.updateProfile(id, profileRequestDTO, avatarUrl, principal.getName());
+        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(updatedProfile,
+                updatedProfile.getUser().getFollowerCount(),
+                updatedProfile.getUser().getFollowingCount()
+        ));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getProfile(@PathVariable Long id) {
-        try{
-            Profile profile = profileService.findById(id);
-            return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(profile,
-                    profile.getUser().getFollowerCount(), profile.getUser().getFollowingCount()));
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
+        Profile profile = profileService.findById(id);
+        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(profile,
+                profile.getUser().getFollowerCount(), profile.getUser().getFollowingCount()));
     }
 
     @GetMapping("/list-profiles")
     public ResponseEntity<?> getAllProfiles() {
-        try{
-            List<Profile> profiles = profileService.findAll();
-            List<ProfileResponseDTO> profilesResponse = profiles.stream()
-                    .map(profile -> profileMapper.toProfileResponseDTO(
-                    profile,
-                    profile.getUser().getFollowerCount(),
-                    profile.getUser().getFollowingCount())
-                    ).collect(Collectors.toList());
-            return ResponseEntity.ok().body(profilesResponse);
-        }catch (Exception e){
-            return ResponseEntity.badRequest().build();
-        }
+        List<Profile> profiles = profileService.findAll();
+        List<ProfileResponseDTO> profilesResponse = profiles.stream()
+                .map(profile -> profileMapper.toProfileResponseDTO(
+                        profile,
+                        profile.getUser().getFollowerCount(),
+                        profile.getUser().getFollowingCount())
+                ).collect(Collectors.toList());
+        return ResponseEntity.ok().body(profilesResponse);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteProfile(@PathVariable Long id) {
-        try {
-            profileService.deleteById(id);
-            return ResponseEntity.ok("Profile has been deleted");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        profileService.deleteById(id);
+        return ResponseEntity.ok("Profile has been deleted");
     }
 }

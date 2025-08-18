@@ -3,6 +3,9 @@ package com.example.social_network_api.service.impl;
 import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
+import com.example.social_network_api.exception.custom.BadRequestException;
+import com.example.social_network_api.exception.custom.ConflictException;
+import com.example.social_network_api.exception.custom.ResourceNotfoundException;
 import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.RoleService;
@@ -33,71 +36,58 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final RoleService roleService;
 
-    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
-
     // Hàm loadUserByUsername
-// Mục đích: Spring Security sẽ gọi hàm này khi cần xác thực username/password.
-// - DaoAuthenticationProvider sẽ gọi nó bên trong quá trình authenticate().
-// - Trả về một UserDetails để Spring so sánh mật khẩu và gán quyền (roles).
+    // Mục đích: Spring Security sẽ gọi hàm này khi cần xác thực username/password.
+    // - DaoAuthenticationProvider sẽ gọi nó bên trong quá trình authenticate().
+    // - Trả về một UserDetails để Spring so sánh mật khẩu và gán quyền (roles).
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Ghi log để theo dõi xem username nào đang được yêu cầu load
-        logger.info("Attempting to load user with username={}", username);
 
         // 1️⃣ Tìm user trong DB theo username
-        User user = userRepository.findByUsername(username);
-
-        // 2️⃣ Nếu không tìm thấy → log cảnh báo và ném lỗi
-        if (user == null) {
-            logger.warn("User not found in database: username={}", username);
-            throw new UsernameNotFoundException("User not found");
-        }
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username)
+                );
 
         if(!user.isEnabled()){
             throw new DisabledException("User is disabled");
         }
-
-        // 3️⃣ Nếu tìm thấy → log thông tin user (chỉ log roles, không log password)
-        logger.info("User found: username={}, roles={}", user.getUsername(), user.getRoles());
 
         // 4️⃣ Trả về UserDetails của Spring Security
         // - user.getPassword(): password đã mã hoá trong DB
         // - mapRolesToAuthorities(): chuyển từ danh sách Role sang GrantedAuthority
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
-                user.getPassword(), // ⚠ Không log password ra console
+                user.getPassword(),
                 mapRolesToAuthorities(user.getRoles())
         );
     }
 
 
     // Hàm mapRolesToAuthorities
-// Mục đích: chuyển danh sách Role trong DB sang danh sách GrantedAuthority mà Spring Security hiểu.
-// Ví dụ: ROLE_USER → new SimpleGrantedAuthority("ROLE_USER")
+    // Mục đích: chuyển danh sách Role trong DB sang danh sách GrantedAuthority mà Spring Security hiểu.
+    // Ví dụ: ROLE_USER → new SimpleGrantedAuthority("ROLE_USER")
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
-        // Ghi log các roles đang được mapping
-        logger.debug("Mapping roles to authorities: {}", roles);
 
         // 1️⃣ Duyệt từng Role và chuyển sang SimpleGrantedAuthority
         // 2️⃣ Collect thành danh sách List<GrantedAuthority>
         return roles.stream()
                 .map(role -> {
-                    logger.debug("Mapping role={} to GrantedAuthority", role.getName());
                     return new SimpleGrantedAuthority(role.getName());
                 })
                 .collect(Collectors.toList());
     }
 
-
-    // Đăng ký user mới (nếu bạn có chức năng register)
-
     @Transactional
     public User registerUser(UserRequestDTO userRequestDTO) {
         if(userRepository.existsByUsername(userRequestDTO.getUsername())){
-            throw new RuntimeException("Username already exists!");
+            throw new ConflictException("Username already exists!");
         }
         if(userRepository.existsByEmail(userRequestDTO.getEmail())){
-            throw new RuntimeException("Email already exists!");
+            throw new ConflictException("Email already exists!");
+        }
+
+        if(userRequestDTO.getPassword().length() < 4){
+            throw new BadRequestException("Password too short!");
         }
 
         userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
@@ -122,14 +112,14 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User updateUser(Long id, UserRequestDTO userRequestDTO) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
 
         if (userRepository.existsByUsernameAndIdNot(userRequestDTO.getUsername(), id)) {
-            throw new RuntimeException("Username already exists!");
+            throw new ConflictException("Username already exists!");
         }
 
         if (userRepository.existsByEmailAndIdNot(userRequestDTO.getEmail(), id)) {
-            throw new RuntimeException("Email already exists!");
+            throw new ConflictException("Email already exists!");
         }
 
         // Copy field từ user sang existingUser nhưng bỏ qua các field nhạy cảm
@@ -138,34 +128,36 @@ public class UserServiceImpl implements UserService {
                 existingUser,
                 "id", "password", "roles", "enabled", "createdAt"
         );
-
-        existingUser.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-
+        if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        }
         return userRepository.save(existingUser);
-    }
-
-
-    // Tìm user theo username
-    @Override
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
     }
 
     @Override
     public User findById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
     }
 
     @Override
     public User findByEmail(String email) {
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+    }
+
+    // Tìm user theo username
+    @Override
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
     }
 
     @Override
     public List<User> findAll() {
         List<User> users = userRepository.findAll();
         if(users.isEmpty()) {
-            throw new UsernameNotFoundException("Users not found");
+            throw new ResourceNotfoundException("Users not found");
         }
         return users;
     }
@@ -173,20 +165,23 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteById(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
         userRepository.deleteById(user.getId());
     }
 
     @Override
     public void disableUser(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
         user.setEnabled(false);
         userRepository.save(user);
     }
 
     @Override
     public void enableUser(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
         user.setEnabled(true);
         userRepository.save(user);
     }

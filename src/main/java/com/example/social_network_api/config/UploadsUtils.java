@@ -27,7 +27,7 @@ public class UploadsUtils {
         }
     }
 
-    public static String uploadFiles(List<MultipartFile> files) {
+    public static List<String> uploadFiles(List<MultipartFile> files) {
         if(files == null || files.isEmpty()){
             return  null;
         }
@@ -54,10 +54,7 @@ public class UploadsUtils {
                     mediaPaths.add("/uploads/" + fileName);
                 }
             }
-            //gộp tất cả đường dẫn trong mediaPaths thành một chuỗi duy nhất, cách nhau bằng dấu phẩy
-            //chuyển list thành string (join) vì trong entity lưu string
-            //chuyển string thành list (split)
-            return String.join(",", mediaPaths);
+            return mediaPaths;
         } catch (IOException e) {
             throw new RuntimeException("Cannot save files: " + e.getMessage());
         }
