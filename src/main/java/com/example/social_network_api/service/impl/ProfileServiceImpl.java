@@ -1,5 +1,6 @@
 package com.example.social_network_api.service.impl;
 
+import com.example.social_network_api.config.AuthUtils;
 import com.example.social_network_api.config.UploadsUtils;
 import com.example.social_network_api.dto.request.ProfileRequestDTO;
 import com.example.social_network_api.entity.Profile;
@@ -29,6 +30,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final ProfileMapper profileMapper;
     private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -57,11 +59,17 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Transactional
-    public Profile updateProfile(Long id, ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
-        Profile existingProfile = profileRepository.findById(id).orElseThrow(
+    public Profile updateProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
+        User user = userService.findByUsername(username);
+        if (user == null) {
+            throw new ResourceNotfoundException("User not found");
+        }
+
+        Profile existingProfile = profileRepository.findByUserId(user.getId()).orElseThrow(
                 () -> new RuntimeException("Profile not found")
         );
-        if(!existingProfile.getUser().getUsername().equals(username)) {
+
+        if(!existingProfile.getUser().getUsername().equals(username) && !AuthUtils.isAdmin()) {
             throw new RuntimeException("Unauthorized attempt to update profile");
         }
 
@@ -73,6 +81,7 @@ public class ProfileServiceImpl implements ProfileService {
         existingProfile.setUpdatedAt(LocalDateTime.now());
         existingProfile.setFullName(profileRequestDTO.getFullName());
         existingProfile.setBio(profileRequestDTO.getBio());
+        existingProfile.setBirthday(profileRequestDTO.getBirthday());
         existingProfile.setGender(profileRequestDTO.isGender());
         existingProfile.setLocation(profileRequestDTO.getLocation());
 

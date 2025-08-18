@@ -1,6 +1,7 @@
 package com.example.social_network_api.service.impl;
 
 import com.example.social_network_api.dto.request.UserRequestDTO;
+import com.example.social_network_api.entity.Profile;
 import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
@@ -23,6 +24,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -90,11 +92,23 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Password too short!");
         }
 
-        userRequestDTO.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
-        Role defaultRole = roleService.findByName("ROLE_USER");
-        userRequestDTO.setRoles(List.of(defaultRole));
+        User user = User.builder()
+                .username(userRequestDTO.getUsername())
+                .enabled(true)
+                .firstName(userRequestDTO.getFirstName())
+                .lastName(userRequestDTO.getLastName())
+                .email(userRequestDTO.getEmail())
+                .password(passwordEncoder.encode(userRequestDTO.getPassword()))
+                .build();
 
-        return  userRepository.save(userMapper.toUser(userRequestDTO));
+        Role defaultRole = roleService.findByName("ROLE_USER");
+        user.setRoles(defaultRole != null ? List.of(defaultRole) : null);
+
+        Profile profile = new Profile();
+        profile.setUser(user);
+        user.setProfile(profile);
+
+        return  userRepository.save(user);
     }
 
     @Override
