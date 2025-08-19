@@ -1,4 +1,4 @@
-package com.example.social_network_api.config;
+package com.example.social_network_api.utils;
 
 import org.springframework.web.multipart.MultipartFile;
 

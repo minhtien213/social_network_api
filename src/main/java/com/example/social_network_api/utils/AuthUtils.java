@@ -1,4 +1,4 @@
-package com.example.social_network_api.config;
+package com.example.social_network_api.utils;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

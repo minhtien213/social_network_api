@@ -19,6 +19,7 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String content;
+    private String mediaUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -31,7 +32,7 @@ public class Comment {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist

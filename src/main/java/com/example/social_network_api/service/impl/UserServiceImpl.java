@@ -113,17 +113,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User save(User user) {
-        return userRepository.save(user);
-    }
-
-    @Override
-    public User update(Long id, User user) {
-        return null;
-    }
-
-    @Override
-    @Transactional
     public User updateUser(Long id, UserRequestDTO userRequestDTO) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotfoundException("User not found"));

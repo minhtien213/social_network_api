@@ -1,7 +1,7 @@
 package com.example.social_network_api.service.impl;
 
-import com.example.social_network_api.config.AuthUtils;
-import com.example.social_network_api.config.UploadsUtils;
+import com.example.social_network_api.utils.AuthUtils;
+import com.example.social_network_api.utils.UploadsUtils;
 import com.example.social_network_api.dto.request.ProfileRequestDTO;
 import com.example.social_network_api.entity.Profile;
 import com.example.social_network_api.entity.User;
@@ -16,12 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,18 +27,6 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileMapper profileMapper;
     private final UserRepository userRepository;
     private final UserService userService;
-
-    @Override
-    @Transactional
-    public Profile save(Profile profile) {
-        return profileRepository.save(profile);
-    }
-
-    @Override
-    @Transactional
-    public Profile update(Long id, Profile profile) {
-        return null;
-    }
 
     @Transactional
     public Profile createProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {

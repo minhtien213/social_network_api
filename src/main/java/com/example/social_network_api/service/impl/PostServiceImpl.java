@@ -1,35 +1,22 @@
 package com.example.social_network_api.service.impl;
 
-import com.example.social_network_api.config.UploadsUtils;
+import com.example.social_network_api.utils.UploadsUtils;
 import com.example.social_network_api.dto.request.PostRequestDTO;
 import com.example.social_network_api.entity.Post;
 import com.example.social_network_api.entity.PostMedia;
-import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.ResourceNotfoundException;
 import com.example.social_network_api.exception.custom.UnauthorizedException;
-import com.example.social_network_api.mapper.PostMapper;
 import com.example.social_network_api.repository.PostRepository;
-import com.example.social_network_api.repository.RoleRepository;
 import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.PostService;
-import com.example.social_network_api.service.RoleService;
-import com.example.social_network_api.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,17 +24,6 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-
-    @Override
-    @Transactional
-    public Post save(Post post) {
-        return postRepository.save(post);
-    }
-
-    @Override
-    public Post update(Long id, Post post) {
-        return null;
-    }
 
     @Override
     @Transactional
