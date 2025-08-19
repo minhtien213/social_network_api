@@ -13,6 +13,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 public class ProfileResponseDTO {
+    private Long id;
     private String fullName;
     private String bio;
     private String avatarUrl;

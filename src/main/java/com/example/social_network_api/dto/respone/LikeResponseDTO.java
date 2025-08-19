@@ -1,8 +1,8 @@
 package com.example.social_network_api.dto.respone;
+
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
@@ -10,13 +10,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PostResponseDTO {
+public class LikeResponseDTO {
     private Long id;
-    private String content;
     private String username;
-    private List<String> postMediaList;
-    private int likesCount;
-    private int commentsCount;
+    private Long post_id;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

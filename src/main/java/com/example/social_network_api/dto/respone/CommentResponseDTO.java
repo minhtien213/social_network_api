@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CommentResponseDTO {
+    private Long id;
     private String content;
     private String mediaUrl;
     private String username;

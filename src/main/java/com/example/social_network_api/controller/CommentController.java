@@ -57,6 +57,16 @@ public class CommentController {
         return ResponseEntity.ok(commentMapper.toCommentResponseDTO(comment));
     }
 
+    @GetMapping("/postId/{postId}")
+    public ResponseEntity<List<?>> getCommentsByPostId(@PathVariable Long postId) {
+        List<Comment> comments = commentService.getCommentsByPostId(postId);
+        List<CommentResponseDTO> commentResponseDTOS = comments.stream()
+                .map(commentMapper::toCommentResponseDTO).collect(Collectors.toList());
+        return ResponseEntity.ok(commentResponseDTOS);
+    }
+
+
+
     @GetMapping("/list-comments")
     public ResponseEntity<List<?>> getAllComments() {
         List<Comment> comments = commentService.findAll();

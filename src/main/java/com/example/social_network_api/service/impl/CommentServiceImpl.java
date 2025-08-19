@@ -93,4 +93,12 @@ public class CommentServiceImpl implements CommentService {
         );
         return comment;
     }
+
+    @Override
+    public List<Comment> getCommentsByPostId(Long postId) {
+        if(!commentRepository.existsByPost_Id(postId)) {
+            throw new ResourceNotfoundException("Post Not Found");
+        }
+        return commentRepository.findAllByPost_Id(postId);
+    }
 }

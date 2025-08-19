@@ -7,11 +7,13 @@ import com.example.social_network_api.entity.PostMedia;
 import com.example.social_network_api.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+//unmappedTargetPolicy tự động map các field
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PostMapper {
 
     //mapstruct không tự map được các field nếu không trùng tên + kdl
@@ -29,6 +31,8 @@ public interface PostMapper {
 
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "postMediaList", expression = "java(mapMediaUrls(post))")
+    @Mapping(target = "likesCount", expression = "java(post.getLikes().size())")
+    @Mapping(target = "commentsCount", expression = "java(post.getComments().size())")
     PostResponseDTO toPostResponseDTO(Post post);
 
     //object -> list string -> trả về client
@@ -38,6 +42,5 @@ public interface PostMapper {
                 .map(media -> media.getMediaUrl())
                 .collect(Collectors.toList());
     };
-
 
 }

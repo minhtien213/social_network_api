@@ -7,8 +7,9 @@ import com.example.social_network_api.entity.Post;
 import com.example.social_network_api.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CommentMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "post", source = "post")
@@ -19,9 +20,8 @@ public interface CommentMapper {
     @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     Comment toComment(Post post, User user, CommentRequestDTO commentRequestDTO, String mediaUrl);
 
-    @Mapping(target = "username", expression = "java(getUsername(comment))")
-    @Mapping(target = "post_id", expression = "java(comment.getPost().getId())")
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "username", source = "user.username")   // user lấy từ Comment.user
+    @Mapping(target = "post_id", source = "post.id")
     CommentResponseDTO toCommentResponseDTO(Comment comment);
 
     default String getUsername(Comment comment) {
