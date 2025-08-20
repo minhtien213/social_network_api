@@ -14,7 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +32,7 @@ public class LikeServiceImpl implements LikeService {
     public Like createLike(Long postId, String username) {
         Post post = postService.findById(postId);
         User user = userService.findByUsername(username);
-        if(likeRepository.existsByPostIdAndUserId(postId, user.getId())){
+        if (likeRepository.existsByPostIdAndUserId(postId, user.getId())) {
             throw new BadRequestException("Like already exists");
         }
         Like like = Like.builder()
@@ -41,7 +45,7 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     @Transactional
-    public void deleteByPostId(Long postId, String username) {
+    public void unLikePostId(Long postId, String username) {
         Post post = postService.findById(postId);
         if (post == null) {
             throw new ResourceNotfoundException("Post not found");
@@ -61,7 +65,7 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     public void deleteById(Long id) {
-        if(!likeRepository.findById(id).isEmpty()) {
+        if (!likeRepository.findById(id).isEmpty()) {
             throw new ResourceNotfoundException("Like not found");
         }
         likeRepository.deleteById(id);
@@ -76,6 +80,28 @@ public class LikeServiceImpl implements LikeService {
     public Like findById(Long id) {
         return likeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotfoundException("Like not found")
-        );
+                );
+    }
+
+    @Override
+    public List<String> getUsernameLikedPost(Long postId) {
+        Post existingPost = postService.findById(postId);
+        List<Like> likes = likeRepository.findAllByPostId(postId);
+        return likes.stream().map(like -> like.getUser().getUsername()).collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Integer> getLikedPostCount(Long postId) {
+        Post existingPost = postService.findById(postId);
+        int count = likeRepository.getLikedPostCount(postId);
+        return Map.of("likeCount", count);
+    }
+
+    @Override
+    public Map<String, Boolean> existsByPostIdAndUserId(Long postId, String username) {
+        Post existingPost = postService.findById(postId);
+        User user = userService.findByUsername(username);
+        Boolean liked = likeRepository.existsByPostIdAndUserId(postId, user.getId());
+        return Map.of("isLiked", liked);
     }
 }

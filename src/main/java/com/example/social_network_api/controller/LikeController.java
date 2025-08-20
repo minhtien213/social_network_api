@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,10 +25,26 @@ public class LikeController {
     }
 
     @DeleteMapping("/postId/{postId}")
-    public ResponseEntity<?> deleteLikeByPostId(@PathVariable Long postId, Principal principal){
-        likeService.deleteByPostId(postId, principal.getName());
-        return ResponseEntity.ok("Like deleted");
+    public ResponseEntity<?> unLikePostId(@PathVariable Long postId, Principal principal){
+        likeService.unLikePostId(postId, principal.getName());
+        return ResponseEntity.ok("Like delete successfully");
     }
 
+    // lấy danh sách tên đã like bài post
+    @GetMapping("/postId/{postId}")
+    public ResponseEntity<?> getUsernameLikedPost(@PathVariable Long postId){
+        return ResponseEntity.ok(likeService.getUsernameLikedPost(postId));
+    }
 
+    // đếm số like bài post
+    @GetMapping("/postId/{postId}/count")
+    public ResponseEntity<?> getLikedPostCount(@PathVariable Long postId){
+        return ResponseEntity.ok(likeService.getLikedPostCount(postId)) ;
+    }
+
+    //kiểm tra user đã like bài post chưa
+    @GetMapping("/postId/{postId}/me")
+    public ResponseEntity<?> getLikedPostMe(@PathVariable Long postId, Principal principal){
+        return ResponseEntity.ok(likeService.existsByPostIdAndUserId(postId, principal.getName()));
+    }
 }

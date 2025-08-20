@@ -75,6 +75,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/profile/list-profiles").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/post/list-posts").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/comment/list-comments").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/like/**").hasAnyRole("USER", "ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/post/create").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/profile/create").hasAnyRole("USER", "ADMIN")
