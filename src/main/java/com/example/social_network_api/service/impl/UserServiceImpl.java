@@ -6,15 +6,13 @@ import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
 import com.example.social_network_api.exception.custom.ConflictException;
-import com.example.social_network_api.exception.custom.ResourceNotfoundException;
+import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.RoleService;
 import com.example.social_network_api.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,7 +22,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -115,7 +112,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User updateUser(Long id, UserRequestDTO userRequestDTO) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (userRepository.existsByUsernameAndIdNot(userRequestDTO.getUsername(), id)) {
             throw new ConflictException("Username already exists!");
@@ -140,27 +137,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     // Tìm user theo username
     @Override
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
     public List<User> findAll() {
         List<User> users = userRepository.findAll();
         if(users.isEmpty()) {
-            throw new ResourceNotfoundException("Users not found");
+            throw new ResourceNotFoundException("Users not found");
         }
         return users;
     }
@@ -169,14 +166,14 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userRepository.deleteById(user.getId());
     }
 
     @Override
     public void disableUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setEnabled(false);
         userRepository.save(user);
     }
@@ -184,7 +181,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void enableUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setEnabled(true);
         userRepository.save(user);
     }

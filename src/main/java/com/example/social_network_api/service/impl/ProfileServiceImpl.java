@@ -5,7 +5,7 @@ import com.example.social_network_api.utils.UploadsUtils;
 import com.example.social_network_api.dto.request.ProfileRequestDTO;
 import com.example.social_network_api.entity.Profile;
 import com.example.social_network_api.entity.User;
-import com.example.social_network_api.exception.custom.ResourceNotfoundException;
+import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.mapper.ProfileMapper;
 import com.example.social_network_api.repository.ProfileRepository;
 import com.example.social_network_api.repository.UserRepository;
@@ -31,7 +31,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional
     public Profile createProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if(avatarUrl != null) {
             String avatarPath = UploadsUtils.uploadFile(avatarUrl);
@@ -46,7 +46,7 @@ public class ProfileServiceImpl implements ProfileService {
     public Profile updateProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
         User user = userService.findByUsername(username);
         if (user == null) {
-            throw new ResourceNotfoundException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
 
         Profile existingProfile = profileRepository.findByUserId(user.getId()).orElseThrow(
@@ -77,7 +77,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional
     public void deleteById(Long id) {
         Profile profile = profileRepository.findById(id).orElseThrow(
-                () -> new ResourceNotfoundException("Profile with id " + id + " not found")
+                () -> new ResourceNotFoundException("Profile with id " + id + " not found")
         );
         profileRepository.deleteById(id);
     }
@@ -86,7 +86,7 @@ public class ProfileServiceImpl implements ProfileService {
     public List<Profile> findAll() {
         List<Profile> profiles = profileRepository.findAll();
         if(profiles.isEmpty()) {
-            throw new ResourceNotfoundException("No profiles found");
+            throw new ResourceNotFoundException("No profiles found");
         }
         return profiles;
     }
@@ -94,7 +94,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public Profile findById(Long id) {
         Profile profile = profileRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotfoundException("Profile with id " + id + " not found")
+                .orElseThrow(() -> new ResourceNotFoundException("Profile with id " + id + " not found")
         );
         return profile;
     }

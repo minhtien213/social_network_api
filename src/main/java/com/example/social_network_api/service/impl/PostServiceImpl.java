@@ -5,7 +5,7 @@ import com.example.social_network_api.dto.request.PostRequestDTO;
 import com.example.social_network_api.entity.Post;
 import com.example.social_network_api.entity.PostMedia;
 import com.example.social_network_api.entity.User;
-import com.example.social_network_api.exception.custom.ResourceNotfoundException;
+import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.exception.custom.UnauthorizedException;
 import com.example.social_network_api.repository.PostRepository;
 import com.example.social_network_api.repository.UserRepository;
@@ -29,7 +29,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public void deleteById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
-                () -> new ResourceNotfoundException("Post with id " + id + " not found")
+                () -> new ResourceNotFoundException("Post with id " + id + " not found")
         );
         postRepository.delete(post);
     }
@@ -42,7 +42,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public Post findById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
-                () -> new ResourceNotfoundException("Post with id " + id + " not found")
+                () -> new ResourceNotFoundException("Post with id " + id + " not found")
         );
         return post;
     }
@@ -52,7 +52,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public Post createPost(PostRequestDTO postRequestDTO, String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotfoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Post post = new Post();
         post.setContent(postRequestDTO.getContent());
@@ -76,7 +76,7 @@ public class PostServiceImpl implements PostService {
     @Transactional
     public Post updatePost(Long id, PostRequestDTO postRequestDTO, String username) {
         Post existingPost = postRepository.findById(id).orElseThrow(
-                () -> new ResourceNotfoundException("Post with id " + id + " not found")
+                () -> new ResourceNotFoundException("Post with id " + id + " not found")
         );
 
         if (!existingPost.getUser().getUsername().equals(username)) {

@@ -7,14 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
     Optional<Like> deleteByPostIdAndUserId(Long postId, Long userId);
-    boolean existsByPostIdAndUserId(Long postId, Long userId);
+    Boolean existsByPostIdAndUserId(Long postId, Long userId);
     List<Like> findAllByPostId(Long postId);
     @Query("SELECT count(l) From Like l where l.post.id = :postId ")
-    Integer getLikedPostCount(Long postId);
+    Long getLikedPostCount(Long postId);
 }

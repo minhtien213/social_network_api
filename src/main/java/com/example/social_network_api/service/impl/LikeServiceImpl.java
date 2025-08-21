@@ -4,7 +4,7 @@ import com.example.social_network_api.entity.Like;
 import com.example.social_network_api.entity.Post;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
-import com.example.social_network_api.exception.custom.ResourceNotfoundException;
+import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.repository.LikeRepository;
 import com.example.social_network_api.service.LikeService;
 import com.example.social_network_api.service.PostService;
@@ -14,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,12 +46,12 @@ public class LikeServiceImpl implements LikeService {
     public void unLikePostId(Long postId, String username) {
         Post post = postService.findById(postId);
         if (post == null) {
-            throw new ResourceNotfoundException("Post not found");
+            throw new ResourceNotFoundException("Post not found");
         }
 
         User user = userService.findByUsername(username);
         if (user == null) {
-            throw new ResourceNotfoundException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
 
         if (!likeRepository.existsByPostIdAndUserId(postId, user.getId())) {
@@ -66,7 +64,7 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public void deleteById(Long id) {
         if (!likeRepository.findById(id).isEmpty()) {
-            throw new ResourceNotfoundException("Like not found");
+            throw new ResourceNotFoundException("Like not found");
         }
         likeRepository.deleteById(id);
     }
@@ -79,7 +77,7 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public Like findById(Long id) {
         return likeRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotfoundException("Like not found")
+                .orElseThrow(() -> new ResourceNotFoundException("Like not found")
                 );
     }
 
@@ -91,9 +89,9 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public Map<String, Integer> getLikedPostCount(Long postId) {
+    public Map<String, Long> getLikedPostCount(Long postId) {
         Post existingPost = postService.findById(postId);
-        int count = likeRepository.getLikedPostCount(postId);
+        Long count = likeRepository.getLikedPostCount(postId);
         return Map.of("likeCount", count);
     }
 

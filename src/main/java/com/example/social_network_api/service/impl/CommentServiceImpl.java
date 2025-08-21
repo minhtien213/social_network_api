@@ -5,7 +5,7 @@ import com.example.social_network_api.entity.Comment;
 import com.example.social_network_api.entity.Post;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
-import com.example.social_network_api.exception.custom.ResourceNotfoundException;
+import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.exception.custom.UnauthorizedException;
 import com.example.social_network_api.mapper.CommentMapper;
 import com.example.social_network_api.repository.CommentRepository;
@@ -35,11 +35,11 @@ public class CommentServiceImpl implements CommentService {
     public Comment createComment(Long postId, CommentRequestDTO commentRequestDTO, String username) {
         Post post = postService.findById(postId);
         if (post == null) {
-            throw new ResourceNotfoundException("Post Not Found");
+            throw new ResourceNotFoundException("Post Not Found");
         }
         User user = userService.findByUsername(username);
         if (user == null) {
-            throw new ResourceNotfoundException("Username Not Found");
+            throw new ResourceNotFoundException("Username Not Found");
         }
         if ((commentRequestDTO.getContent() == null || commentRequestDTO.getContent().isBlank())
                 && (commentRequestDTO.getMediaUrl() == null || commentRequestDTO.getMediaUrl().isEmpty())) {
@@ -56,7 +56,7 @@ public class CommentServiceImpl implements CommentService {
     public Comment updateComment(Long id, CommentRequestDTO commentRequestDTO, String username) {
         Comment existingComment = this.findById(id);
         if(existingComment == null) {
-            throw new ResourceNotfoundException("Comment Not Found");
+            throw new ResourceNotFoundException("Comment Not Found");
         }
         if ((commentRequestDTO.getContent() == null || commentRequestDTO.getContent().isBlank())
                 && (commentRequestDTO.getMediaUrl() == null || commentRequestDTO.getMediaUrl().isEmpty())) {
@@ -76,7 +76,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public void deleteById(Long id) {
         Comment comment = commentRepository.findById(id).orElseThrow(
-                () -> new ResourceNotfoundException("Comment not found with id " + id)
+                () -> new ResourceNotFoundException("Comment not found with id " + id)
         );
         commentRepository.deleteById(id);
     }
@@ -89,7 +89,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Comment findById(Long id) {
         Comment comment = commentRepository.findById(id).orElseThrow(
-                () -> new ResourceNotfoundException("Comment not found with id " + id)
+                () -> new ResourceNotFoundException("Comment not found with id " + id)
         );
         return comment;
     }
@@ -97,7 +97,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<Comment> getCommentsByPostId(Long postId) {
         if(!commentRepository.existsByPost_Id(postId)) {
-            throw new ResourceNotfoundException("Post Not Found");
+            throw new ResourceNotFoundException("Post Not Found");
         }
         return commentRepository.findAllByPost_Id(postId);
     }

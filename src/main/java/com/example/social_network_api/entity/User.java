@@ -66,17 +66,11 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likes;
 
-    // Quan hệ N:M self join Follows
-    @ManyToMany
-    @JoinTable(
-            name = "follows",
-            joinColumns = @JoinColumn(name = "follower_id"),
-            inverseJoinColumns = @JoinColumn(name = "following_id")
-    )
-    private List<User> following;
+    @OneToMany(mappedBy = "following",  cascade = CascadeType.ALL, orphanRemoval = true)
+    private Collection<Follow> following; //mình theo dõi
 
-    @ManyToMany(mappedBy = "following")
-    private List<User> followers;
+    @OneToMany(mappedBy = "following",  cascade = CascadeType.ALL, orphanRemoval = true)
+    private Collection<Follow> followers; //theo dõi mình
 
 
     // Set createdAt và updatedAt trước khi insert
