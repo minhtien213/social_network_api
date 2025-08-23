@@ -1,6 +1,7 @@
 package com.example.social_network_api.controller;
 
 import com.example.social_network_api.dto.request.AuthRequest;
+import com.example.social_network_api.dto.request.ResetPasswordDTO;
 import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.dto.respone.AuthResponse;
 import com.example.social_network_api.entity.User;
@@ -13,10 +14,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -31,39 +37,44 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
-
-        // 1️⃣ Gọi AuthenticationManager để xác thực username & password
-        // - UsernamePasswordAuthenticationToken: gói username và password từ request vào object
-        // - authenticationManager sẽ tự tìm đúng AuthenticationProvider (ở đây là DaoAuthenticationProvider)
-        // - DaoAuthenticationProvider sẽ:
-        //   + Gọi UserService.loadUserByUsername() để lấy UserDetails từ DB
-        //   + So sánh password từ request (plain text) với password đã mã hóa trong DB (bằng PasswordEncoder)
-        // => Nếu đúng: trả về đối tượng Authentication chứa thông tin user
-        // => Nếu sai: ném ra BadCredentialsException (Spring Security tự bắt và trả lỗi 401)
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
-        );
-
-        // 2️⃣ Nếu AuthenticationManager không ném lỗi → nghĩa là xác thực thành công
-        // Lúc này ta load lại thông tin user từ DB (UserDetails) để sinh token
-        UserDetails userDetails = userService.loadUserByUsername(authRequest.getUsername());
-
-        // 3️⃣ Tạo JWT cho user
-        // - jwtUtils.generateToken() sẽ:
-        //   + Gắn username vào payload (claims)
-        //   + Gắn thời gian hết hạn
-        //   + Ký bằng secret key (HS256)
-        String token = jwtUtils.generateToken(userDetails);
-
-        // 4️⃣ Trả token về client
-        // - Client sẽ lưu token này và gửi lại trong các request tiếp theo (header Authorization: Bearer <token>)
-        return ResponseEntity.ok(new AuthResponse(token));
+        try{
+            // Gọi AuthenticationManager để xác thực username & password
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+            );
+            // Load lại thông tin user từ DB (UserDetails) để sinh token
+            UserDetails userDetails = userService.loadUserByUsername(authRequest.getUsername());
+            //  Tạo JWT cho user
+            String token = jwtUtils.generateToken(userDetails);
+            // Trả token về client
+            return ResponseEntity.ok(new AuthResponse(token));
+        }catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User not found"));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid username or password"));
+        } catch (DisabledException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "User is disabled"));
+        }
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
             User savedUser = userService.registerUser(userRequestDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toUserResponseDTO(savedUser));
-        }
+    }
 
+    @PostMapping("/reset-request")
+    public ResponseEntity<?> resetPassword(@Valid @RequestParam String username) {
+        userService.sentPasswordResetToken(username);
+        return ResponseEntity.ok("If the user name is correct, the email reset the password that has been sent to the registered email.");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam String token, @Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
+        userService.resetPassword(token, resetPasswordDTO);
+        return ResponseEntity.ok().body("Password reset successful.");
+    }
 }

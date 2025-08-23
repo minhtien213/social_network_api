@@ -66,6 +66,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/login").permitAll() // Cho phép login không cần token
                         .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/auth/reset-request").permitAll()
+                        .requestMatchers("/auth/reset-password").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/user/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/post/**").hasAnyRole("USER", "ADMIN")
