@@ -76,10 +76,18 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/post/list-posts").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/comment/list-comments").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/like/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/follows/*/friends").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/follows/*/followers").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/follows/*/followings").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/follows/*/friend-counts").hasAnyRole("USER", "ADMIN")
+
 
                         .requestMatchers(HttpMethod.POST, "/api/post/create").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/profile/create").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/comment/create").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/follows/create").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/follows/*/accept").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/follows/*/reject").hasAnyRole("USER", "ADMIN")
 
                         .requestMatchers(HttpMethod.PUT, "/api/user/{id}").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/post/{id}").hasAnyRole("USER", "ADMIN")
@@ -89,6 +97,8 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.DELETE, "/api/user/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/post/{id}").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/comment/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/follows/*/cancel").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/follows/*/unfollow").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/profile/{id}").hasRole("ADMIN")
 
                         .anyRequest().authenticated() // Các request khác phải có token hợp lệ

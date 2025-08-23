@@ -12,32 +12,52 @@ import java.util.Set;
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long> {
     Boolean existsByFollowerIdAndFollowingId(Long followerId, Long followingId);
-    Boolean existsByFollowerIdAndFollowingIdAndFollowStatus(Long followerId, Long followingId,  Follow.FollowStatus followStatus);
 
+    Boolean existsByFollowerIdAndFollowingIdAndFollowStatus(Long followerId, Long followingId, Follow.FollowStatus followStatus);
 
-    @Query("select count(f) from Follow f where (f.follower.id = :userId or f.following.id = :userId) " +
-            "and f.followStatus =: followStatus")
+    @Query("select (count(f) > 0) from Follow f where " +
+            "((f.follower.id = :followerId and  f.following.id = :followingId) or " +
+            "(f.follower.id = :followingId and  f.following.id = :followerId)) and " +
+            "f.followStatus = :followStatus")
+    Boolean isFriend(@Param("followerId") Long followerId, @Param("followingId") Long followingId, Follow.FollowStatus followStatus);
+
+    @Query("select f from Follow f where " +
+            "(f.follower.id = :followerId and  f.following.id = :followingId) or " +
+            "(f.follower.id = :followingId and  f.following.id = :followerId)")
+    Follow existsFollow(@Param("followerId") Long followerId, @Param("followingId") Long followingId);
+
+    @Query("select count(f) from Follow f where (f.follower.id = :userId or f.following.id = :userId) and " +
+            "f.followStatus = :followStatus")
     Long countFriends(@Param("userId") Long userId, @Param("followStatus") Follow.FollowStatus followStatus);
 
-
-    @Query("select case when f.follower.id = :userId then f.following else f.follower end " +
-            "from Follow f " +
-            "where (f.follower.id = :userId or f.following.id = :userId) " +
-            "and f.followStatus = :followStatus")
+    // CASE WHEN : trả về ds id không trả về entity -> lấy ds entity từ ds id
+    @Query("select u from User u " +
+            "where u.id in (select case when f.follower.id = :userId then f.following.id else f.follower.id end " +
+            "from Follow f where (f.follower.id = :userId or f.following.id = :userId) " +
+            "and f.followStatus = :followStatus)")
     Set<User> findAllFriends(@Param("userId") Long userId, @Param("followStatus") Follow.FollowStatus followStatus);
 
 
     //lấy ds người fl mình -> lấy all bản ghi với điều kiện người nhận là id của mình
-    @Query("select f.follower from Follow f where f.following.id = :userId and f.followStatus in (:statuses)")
-    Set<User> findFollowers(@Param("userId") Long userId, @Param("statuses") Set<Follow.FollowStatus> statuses);
-    //lấy ds mình đang fl -> lấy all bản ghi với điều kiện người gởi là id của mình
-    @Query("select f.following from Follow f where f.follower.id = :userId and f.followStatus in (:statuses)")
-    Set<User> getFollowings(@Param("userId") Long userId, @Param("statuses") Set<Follow.FollowStatus> statuses);
+    @Query("select u from User u " +
+            "where u.id in (select case when f.follower.id = :userId then f.following.id else f.follower.id end " +
+            "from Follow f where ((f.follower.id = :userId or f.following.id = :userId) and f.followStatus = :accepted) " +
+            "or (f.following.id = :userId and f.followStatus = :pending))")
+    Set<User> findFollowers(@Param("userId") Long userId, @Param("accepted") Follow.FollowStatus accepted,
+                            @Param("pending") Follow.FollowStatus pending);
 
+    //lấy ds mình đang fl -> lấy all bản ghi với điều kiện người gởi là id của mình
+    @Query("select u from User u " +
+            "where u.id in (select case when f.follower.id = :userId then f.following.id else f.follower.id end " +
+            "from Follow f where ((f.follower.id = :userId or f.following.id = :userId) and f.followStatus = :accepted) " +
+            "or (f.follower.id = :userId and f.followStatus = :pending))")
+    Set<User> getFollowings(@Param("userId") Long userId, @Param("accepted") Follow.FollowStatus accepted,
+                            @Param("pending") Follow.FollowStatus pending);
 
     //lấy all lời mời mình đã gởi đi -> lấy ds folowings
     @Query("select f.following from Follow f where f.follower.id = :userId and f.followStatus = :followStatus")
     Set<User> findPendingRequestsSent(@Param("userId") Long userId, @Param("followStatus") Follow.FollowStatus followStatus);
+
     //lấy all lời mời mình đã nhận -> lấy ds followers
     @Query("select f.follower from Follow f where f.following.id = :userId and f.followStatus = :followStatus")
     Set<User> findPendingRequestsReceived(@Param("userId") Long userId, @Param("followStatus") Follow.FollowStatus followStatus);

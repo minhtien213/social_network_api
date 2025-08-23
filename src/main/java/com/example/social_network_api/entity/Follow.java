@@ -38,11 +38,13 @@ public class Follow {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @PrePersist
     public void prePersist(){
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
+    @PreUpdate
     public void preUpdate(){
         this.updatedAt = LocalDateTime.now();
     }
