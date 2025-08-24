@@ -22,5 +22,4 @@ public class PasswordResetToken {
     @JoinColumn(name = "user_id")
     private User user;
     private LocalDateTime expiryDate;
-
 }

@@ -16,8 +16,8 @@ public interface CommentMapper {
     @Mapping(target = "user", source = "user")
     @Mapping(target = "content", source = "commentRequestDTO.content")
     @Mapping(target = "mediaUrl", source = "mediaUrl")
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
     Comment toComment(Post post, User user, CommentRequestDTO commentRequestDTO, String mediaUrl);
 
     @Mapping(target = "username", source = "user.username")   // user lấy từ Comment.user

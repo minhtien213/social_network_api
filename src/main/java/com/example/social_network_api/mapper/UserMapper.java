@@ -14,12 +14,9 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "enabled", expression = "java(true)") // constant = "true"
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     User toUser(UserRequestDTO userRequestDTO);
 
     //chỉ trả list string roles
     @Mapping(target = "roles", expression = "java(user.getRoles().stream().map(r -> r.getName()).toList())")
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     UserResponseDTO toUserResponseDTO(User user);
 }

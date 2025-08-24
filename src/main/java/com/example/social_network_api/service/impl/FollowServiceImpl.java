@@ -1,12 +1,14 @@
 package com.example.social_network_api.service.impl;
 
 import com.example.social_network_api.entity.Follow;
+import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
 import com.example.social_network_api.exception.custom.ForbiddenException;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.repository.FollowRepository;
 import com.example.social_network_api.service.FollowService;
+import com.example.social_network_api.service.NotificationService;
 import com.example.social_network_api.service.UserService;
 import com.example.social_network_api.utils.AuthUtils;
 import jakarta.transaction.Transactional;
@@ -22,25 +24,25 @@ public class FollowServiceImpl implements FollowService {
 
     private final FollowRepository followRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     //gởi lời mời
     @Override
     @Transactional
     public Follow createFollow(Long followerId, Long followingId) {
         if (followerId == null || followingId == null) {
-            throw new BadRequestException("followerId and followingId can't be null");
+            throw new BadRequestException("FollowerId and followingId can't be null");
         }
 
         Follow existingFollow = followRepository.existsFollow(followerId, followingId);
 
         if(existingFollow != null && (existingFollow.getFollowStatus() == Follow.FollowStatus.ACCEPTED ||
                         existingFollow.getFollowStatus() == Follow.FollowStatus.PENDING)) {
-            throw new ResourceNotFoundException("Follow already exists");
+            throw new BadRequestException("Follow already exists");
         }
 
         if (existingFollow != null && existingFollow.getFollowStatus() == Follow.FollowStatus.REJECTED) {
-            existingFollow.setFollowStatus(Follow.FollowStatus.PENDING);
-            return followRepository.save(existingFollow);
+            followRepository.delete(existingFollow);
         }
 
         if (followerId.equals(followingId)) {
@@ -49,17 +51,27 @@ public class FollowServiceImpl implements FollowService {
 
         User follower = userService.findById(followerId);
         User following = userService.findById(followingId);
+
+        if(!AuthUtils.getCurrentUsername().equals(follower.getUsername())) {
+            throw new ForbiddenException("Unauthorized");
+        }
+
         Follow follow = Follow.builder()
                 .follower(follower)
                 .following(following)
                 .followStatus(Follow.FollowStatus.PENDING)
                 .build();
-        return followRepository.save(follow);
+        Follow savedFollow = followRepository.save(follow);
+        notificationService.createAndSentNotification(savedFollow.getId(), following, Notification.NotificationType.FOLLOW);
+        return savedFollow;
     }
 
     public Follow updateFollowStatus(Long followId, Follow.FollowStatus newStatus) {
         Follow existingFollow = followRepository.findById(followId)
                 .orElseThrow(() -> new ResourceNotFoundException("Follow not found."));
+        if(existingFollow.getFollower().getUsername().equals(AuthUtils.getCurrentUsername())){
+            throw  new ForbiddenException("You cannot handle your own request.");
+        }
         if (existingFollow.getFollowStatus() != Follow.FollowStatus.PENDING) {
             throw new BadRequestException("Request already processed");
         }
@@ -161,4 +173,9 @@ public class FollowServiceImpl implements FollowService {
         return pendingRequestsReceived;
     }
 
+    @Override
+    public Follow findById(Long id) {
+        return followRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Follow not found."));
+    }
 }

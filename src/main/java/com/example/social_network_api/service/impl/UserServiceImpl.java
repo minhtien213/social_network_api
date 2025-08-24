@@ -9,7 +9,6 @@ import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
 import com.example.social_network_api.exception.custom.ConflictException;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
-import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.repository.PasswordResetTokenRepositoty;
 import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.MailService;

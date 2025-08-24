@@ -12,8 +12,6 @@ import org.mapstruct.ReportingPolicy;
 public interface ProfileMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", source = "user")
-    @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "updatedAt", expression = "java(java.time.LocalDateTime.now())")
     Profile toProfile(ProfileRequestDTO profileRequestDTO, User user);
 
     @Mapping(target = "followerCount", source = "followerCount")

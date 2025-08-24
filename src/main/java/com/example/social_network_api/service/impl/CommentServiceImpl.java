@@ -2,6 +2,7 @@ package com.example.social_network_api.service.impl;
 
 import com.example.social_network_api.dto.request.CommentRequestDTO;
 import com.example.social_network_api.entity.Comment;
+import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.entity.Post;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
@@ -10,6 +11,7 @@ import com.example.social_network_api.exception.custom.UnauthorizedException;
 import com.example.social_network_api.mapper.CommentMapper;
 import com.example.social_network_api.repository.CommentRepository;
 import com.example.social_network_api.service.CommentService;
+import com.example.social_network_api.service.NotificationService;
 import com.example.social_network_api.service.PostService;
 import com.example.social_network_api.service.UserService;
 import com.example.social_network_api.utils.AuthUtils;
@@ -29,6 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final PostService postService;
     private final UserService userService;
     private final CommentMapper commentMapper;
+    private final NotificationService notificationService;
 
     @Transactional
     @Override
@@ -48,7 +51,9 @@ public class CommentServiceImpl implements CommentService {
 
         String mediaUrl = UploadsUtils.uploadFile(commentRequestDTO.getMediaUrl());
         Comment comment = commentMapper.toComment(post, user, commentRequestDTO, mediaUrl);
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+        notificationService.createAndSentNotification(savedComment.getId(), post.getUser(), Notification.NotificationType.COMMENT);
+        return savedComment;
     }
 
     @Transactional

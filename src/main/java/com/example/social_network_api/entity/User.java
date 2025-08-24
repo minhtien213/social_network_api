@@ -58,11 +58,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts;
 
-    // Quan hệ 1:N với Comment
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 
-    // Quan hệ 1:N với Like
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likes;
 
@@ -72,15 +70,15 @@ public class User {
     @OneToMany(mappedBy = "following",  cascade = CascadeType.ALL, orphanRemoval = true)
     private Collection<Follow> followers; //theo dõi mình
 
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications;
 
-    // Set createdAt và updatedAt trước khi insert
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Cập nhật updatedAt trước khi update
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();

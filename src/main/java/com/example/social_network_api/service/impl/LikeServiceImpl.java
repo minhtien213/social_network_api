@@ -1,12 +1,14 @@
 package com.example.social_network_api.service.impl;
 
 import com.example.social_network_api.entity.Like;
+import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.entity.Post;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.repository.LikeRepository;
 import com.example.social_network_api.service.LikeService;
+import com.example.social_network_api.service.NotificationService;
 import com.example.social_network_api.service.PostService;
 import com.example.social_network_api.service.UserService;
 import jakarta.transaction.Transactional;
@@ -25,6 +27,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeRepository likeRepository;
     private final PostService postService;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @Transactional
     public Like createLike(Long postId, String username) {
@@ -36,9 +39,10 @@ public class LikeServiceImpl implements LikeService {
         Like like = Like.builder()
                 .post(post)
                 .user(user)
-                .createdAt(LocalDateTime.now())
                 .build();
-        return likeRepository.save(like);
+        Like savedLike = likeRepository.save(like);
+        notificationService.createAndSentNotification(savedLike.getId(), post.getUser(), Notification.NotificationType.LIKE);
+        return savedLike;
     }
 
     @Override

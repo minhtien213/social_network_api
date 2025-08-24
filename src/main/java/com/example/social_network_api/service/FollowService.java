@@ -27,4 +27,6 @@ public interface FollowService {
 
     Set<User> getPendingRequestsSent(Long userId);
     Set<User> getPendingRequestsReceived(Long userId);
+
+    Follow findById(Long id);
 }
