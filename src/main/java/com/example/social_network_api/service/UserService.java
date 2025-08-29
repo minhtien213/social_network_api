@@ -7,7 +7,10 @@ import jakarta.validation.Valid;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.Map;
+
 public interface UserService extends UserDetailsService, IService<User> {
+
     User findByUsername(String username);
 
     User findByEmail(String email);
@@ -15,6 +18,11 @@ public interface UserService extends UserDetailsService, IService<User> {
     void disableUser(Long id);
 
     void enableUser(Long id);
+
+    Map<String, String> login(String username, String password);
+    Map<String, String> refreshToken(String refreshToken);
+
+    void logout(String accessToken, String refreshToken);
 
     User registerUser(UserRequestDTO userRequestDTO);
 

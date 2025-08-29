@@ -9,10 +9,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AuthRequest {
-    @NotBlank(message = "Username không được để trống!")
+public class LoginRequestDTO {
+    @NotBlank
     private String username;
-    @NotBlank(message = "Password không được để trống!")
-    @Size(min = 8)
+    @NotBlank
+    @Size(min = 4)
     private String password;
 }

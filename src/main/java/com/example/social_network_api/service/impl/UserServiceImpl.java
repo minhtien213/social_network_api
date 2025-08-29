@@ -11,13 +11,18 @@ import com.example.social_network_api.exception.custom.ConflictException;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.repository.PasswordResetTokenRepositoty;
 import com.example.social_network_api.repository.UserRepository;
+import com.example.social_network_api.security.jwt.JWTUtils;
+import com.example.social_network_api.security.jwt.TokenStoreService;
 import com.example.social_network_api.service.MailService;
 import com.example.social_network_api.service.RoleService;
 import com.example.social_network_api.service.UserService;
+import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -28,6 +33,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,27 +43,22 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JWTUtils jwtUtils;
+    private final TokenStoreService tokenStoreService;
     private final PasswordResetTokenRepositoty passwordResetTokenRepositoty;
     private final RoleService roleService;
     private final MailService mailService;
 
-    // Hàm loadUserByUsername
-    // Mục đích: Spring Security sẽ gọi hàm này khi cần xác thực username/password.
-    // - DaoAuthenticationProvider sẽ gọi nó bên trong quá trình authenticate().
-    // - Trả về một UserDetails để Spring so sánh mật khẩu và gán quyền (roles).
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 1️⃣ Tìm user trong DB theo username
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        if(!user.isEnabled()){
+        if (!user.isEnabled()) {
             throw new DisabledException("User is disabled");
         }
 
-        // 4️⃣ Trả về UserDetails của Spring Security
-        // - user.getPassword(): password đã mã hoá trong DB
-        // - mapRolesToAuthorities(): chuyển từ danh sách Role sang GrantedAuthority
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
@@ -65,12 +66,8 @@ public class UserServiceImpl implements UserService {
         );
     }
 
-    // Hàm mapRolesToAuthorities
-    // Mục đích: chuyển danh sách Role trong DB sang danh sách GrantedAuthority mà Spring Security hiểu.
-    // Ví dụ: ROLE_USER → new SimpleGrantedAuthority("ROLE_USER")
+    // ROLE_USER → new SimpleGrantedAuthority("ROLE_USER")
     private Collection<? extends GrantedAuthority> mapRolesToAuthorities(Collection<Role> roles) {
-        // 1️⃣ Duyệt từng Role và chuyển sang SimpleGrantedAuthority
-        // 2️⃣ Collect thành danh sách List<GrantedAuthority>
         return roles.stream()
                 .map(role -> {
                     return new SimpleGrantedAuthority(role.getName());
@@ -78,16 +75,100 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    public Map<String, String> login(String username, String password) {
+        // Gọi AuthenticationManager để xác thực username & password
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+
+        // Load lại thông tin user từ DB (UserDetails) để sinh token
+        UserDetails userDetails = this.loadUserByUsername(username);
+
+        String accessToken = jwtUtils.generateAccessToken(userDetails.getUsername());
+        String refreshToken = jwtUtils.generateRefreshToken(userDetails.getUsername());
+
+        // Lưu refresh jti vào whitelist (ttl: time to live)
+        String refreshJti = jwtUtils.extractJti(refreshToken);
+        long refreshTtlSec = jwtUtils.secondsUntilExpiry(refreshToken);
+        tokenStoreService.whitelistRefreshJti(refreshJti, username, refreshTtlSec);
+
+        return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
+    }
+
+    @Override
+    public Map<String, String> refreshToken(String refreshToken) {
+        // 1) Parse & kiểm tra loại
+        Claims claims = jwtUtils.parseToken(refreshToken);
+        String tokenType = (String) claims.get("token_type");
+        if (!"refresh".equals(tokenType)) {
+            throw new BadRequestException("Invalid token_type for refresh flow");
+        }
+
+        String jti = claims.getId();
+        String username = claims.getSubject();
+
+        // 2) Check blacklist
+        if (tokenStoreService.isRefreshJtiBlacklisted(jti)) {
+            throw new RuntimeException("Refresh token is blacklisted (reused or revoked)");
+        }
+
+        // 3) Check whitelist tồn tại (single-use/single-session)
+        String wlUsername = tokenStoreService.getUsernameByRefreshJti(jti);
+        if (wlUsername == null || !wlUsername.equals(username)) {
+            throw new RuntimeException("Refresh token not recognized (revoked or expired)");
+        }
+
+        // 4) (Optional) load lại user để đảm bảo user còn active/roles mới nhất
+        UserDetails userDetails = this.loadUserByUsername(username);
+        //List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
+
+        // 5) ROTATE: blacklist refresh cũ + xoá whitelist cũ + phát refresh mới + whitelist mới
+        long oldRtTtl = jwtUtils.secondsUntilExpiry(refreshToken);
+        tokenStoreService.blacklistRefreshJti(jti, oldRtTtl); // chống reuse
+        tokenStoreService.removeRefreshJti(jti);
+
+        String newAccess = jwtUtils.generateAccessToken(username);
+        String newRefresh = jwtUtils.generateRefreshToken(username);
+
+        //whitelist new refresh token
+        String newJti = jwtUtils.extractJti(newRefresh);
+        long newRtTtl = jwtUtils.secondsUntilExpiry(newRefresh);
+        tokenStoreService.whitelistRefreshJti(newJti, username, newRtTtl);
+
+        return Map.of(
+                "accessToken", newAccess,
+                "refreshToken", newRefresh
+        );
+    }
+
+    @Override
+    public void logout(String accessToken, String refreshToken) {
+        // blacklist access token
+        if (accessToken != null && !accessToken.isBlank()) {
+            String atJti = jwtUtils.extractJti(accessToken);
+            long ttl = jwtUtils.secondsUntilExpiry(accessToken);
+            if (ttl > 0) tokenStoreService.blacklistAccessJti(atJti, ttl);
+        }
+
+        // blacklist refresh token
+        if (refreshToken != null && !refreshToken.isBlank()) {
+            String rtJti = jwtUtils.extractJti(refreshToken);
+            long ttl = jwtUtils.secondsUntilExpiry(refreshToken);
+            if (ttl > 0) {
+                tokenStoreService.blacklistRefreshJti(rtJti, ttl);
+                tokenStoreService.removeRefreshJti(rtJti); // xoá khỏi whitelist
+            }
+        }
+    }
+
     @Transactional
     public User registerUser(UserRequestDTO userRequestDTO) {
-        if(userRepository.existsByUsername(userRequestDTO.getUsername())){
+        if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
             throw new ConflictException("Username already exists!");
         }
-        if(userRepository.existsByEmail(userRequestDTO.getEmail())){
+        if (userRepository.existsByEmail(userRequestDTO.getEmail())) {
             throw new ConflictException("Email already exists!");
         }
 
-        if(userRequestDTO.getPassword().length() < 4){
+        if (userRequestDTO.getPassword().length() < 4) {
             throw new BadRequestException("Password too short!");
         }
 
@@ -107,13 +188,13 @@ public class UserServiceImpl implements UserService {
         profile.setUser(user);
         user.setProfile(profile);
 
-        return  userRepository.save(user);
+        return userRepository.save(user);
     }
 
     @Override
     public void sentPasswordResetToken(String username) {
         User user = this.findByUsername(username);
-        if(user != null && user.isEnabled()){
+        if (user != null && user.isEnabled()) {
             String token = UUID.randomUUID().toString();
             PasswordResetToken passwordResetToken = PasswordResetToken.builder()
                     .token(token)
@@ -132,10 +213,10 @@ public class UserServiceImpl implements UserService {
     public void resetPassword(String token, ResetPasswordDTO resetPasswordDTO) {
         PasswordResetToken passwordResetToken = passwordResetTokenRepositoty.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Token not found or Token has been used!"));
-        if(passwordResetToken.getExpiryDate().isBefore(LocalDateTime.now())){
+        if (passwordResetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Token is expired!");
         }
-        if(!resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getNewPasswordConfirm())){
+        if (!resetPasswordDTO.getNewPassword().equals(resetPasswordDTO.getNewPasswordConfirm())) {
             throw new BadRequestException("New Password Mismatch!");
         }
         User user = passwordResetToken.getUser();
@@ -160,7 +241,7 @@ public class UserServiceImpl implements UserService {
             throw new ConflictException("Email already exists!");
         }
 
-        // Copy field từ user sang existingUser nhưng bỏ qua các field nhạy cảm
+        // Copy field từ user sang existingUser nhưng bỏ qua các field id, password...
         BeanUtils.copyProperties(
                 userRequestDTO,
                 existingUser,
@@ -193,11 +274,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findAll() {
-        List<User> users = userRepository.findAll();
-        if(users.isEmpty()) {
-            throw new ResourceNotFoundException("Users not found");
-        }
-        return users;
+        return userRepository.findAll();
     }
 
     @Override
@@ -209,6 +286,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void disableUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -217,6 +295,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void enableUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
