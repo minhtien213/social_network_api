@@ -7,6 +7,7 @@ import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,10 +30,10 @@ public class UserController {
     }
 
     @GetMapping("/list-users")
-    public ResponseEntity<?> getAllUsers() {
-        List<User> users = userService.findAll();
-        List<UserResponseDTO> usersResponse = users.stream()
-                .map(user -> userMapper.toUserResponseDTO(user)).collect(Collectors.toList());
+    public ResponseEntity<Page<?>> getAllUsers(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "3") int size) {
+        Page<User> users = userService.findAll(page, size);
+        Page<UserResponseDTO> usersResponse = users.map(user -> userMapper.toUserResponseDTO(user));
         return ResponseEntity.status(HttpStatus.OK).body(usersResponse);
     }
 

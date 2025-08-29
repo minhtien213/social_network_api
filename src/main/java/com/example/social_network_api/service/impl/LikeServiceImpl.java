@@ -13,6 +13,10 @@ import com.example.social_network_api.service.PostService;
 import com.example.social_network_api.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -74,8 +78,9 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public List<Like> findAll() {
-        return likeRepository.findAll();
+    public Page<Like> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return likeRepository.findAll(pageable);
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.example.social_network_api.repository;
 
 import com.example.social_network_api.entity.Follow;
 import com.example.social_network_api.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,7 +37,7 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
             "where u.id in (select case when f.follower.id = :userId then f.following.id else f.follower.id end " +
             "from Follow f where (f.follower.id = :userId or f.following.id = :userId) " +
             "and f.followStatus = :followStatus)")
-    Set<User> findAllFriends(@Param("userId") Long userId, @Param("followStatus") Follow.FollowStatus followStatus);
+    Page<User> findAllFriends(@Param("userId") Long userId, @Param("followStatus") Follow.FollowStatus followStatus, Pageable pageable);
 
 
     //lấy ds người fl mình -> lấy all bản ghi với điều kiện người nhận là id của mình

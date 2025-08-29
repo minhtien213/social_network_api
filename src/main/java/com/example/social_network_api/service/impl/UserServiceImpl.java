@@ -8,6 +8,7 @@ import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.BadRequestException;
 import com.example.social_network_api.exception.custom.ConflictException;
+import com.example.social_network_api.exception.custom.ForbiddenException;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.repository.PasswordResetTokenRepositoty;
 import com.example.social_network_api.repository.UserRepository;
@@ -16,10 +17,18 @@ import com.example.social_network_api.security.jwt.TokenStoreService;
 import com.example.social_network_api.service.MailService;
 import com.example.social_network_api.service.RoleService;
 import com.example.social_network_api.service.UserService;
+import com.example.social_network_api.utils.AuthUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -160,6 +169,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public User registerUser(UserRequestDTO userRequestDTO) {
         if (userRepository.existsByUsername(userRequestDTO.getUsername())) {
             throw new ConflictException("Username already exists!");
@@ -229,6 +239,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CachePut(value = "user", key = "#id")
     public User updateUser(Long id, UserRequestDTO userRequestDTO) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -254,12 +265,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "user", key = "#id")
     public User findById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
+    @Cacheable(value = "user", key = "#email")
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -267,18 +280,25 @@ public class UserServiceImpl implements UserService {
 
     // Tìm user theo username
     @Override
+    @Cacheable(value = "user", key = "#username")
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
+    @Cacheable(value = "users", key = "#page + '-' + #size")
+    public Page<User> findAll(int page, int size) {
+        if(!AuthUtils.isAdmin()){
+            throw new ForbiddenException("Unauthorized");
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return userRepository.findAll(pageable);
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = {"user", "users"}, allEntries = true)
     public void deleteById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -287,6 +307,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CachePut(value = "user", key = "#id")
     public void disableUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -296,6 +317,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CachePut(value = "user", key = "#id")
     public void enableUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

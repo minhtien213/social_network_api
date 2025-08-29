@@ -5,11 +5,9 @@ import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.mapper.NotificationMapper;
 import com.example.social_network_api.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,11 +21,12 @@ public class NotificationController {
     private final NotificationMapper notificationMapper;
 
     @GetMapping("/{receiverId}")
-    public ResponseEntity<List<?>> findByReceiverId(@PathVariable Long receiverId) {
-        List<Notification> notifications = notificationService.findByReceiverId(receiverId);
-        List<NotificationResponseDTO> dtos = notifications.stream()
-                .map(dto -> notificationMapper.toDto(dto))
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<?>> findByReceiverId(@PathVariable Long receiverId,
+                                                    @RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "3") int size
+                                                    ) {
+        Page<Notification> notifications = notificationService.findByReceiverId(receiverId, page, size);
+        Page<NotificationResponseDTO> dtos = notifications.map(dto -> notificationMapper.toDto(dto));
         return ResponseEntity.ok(dtos);
     }
 }

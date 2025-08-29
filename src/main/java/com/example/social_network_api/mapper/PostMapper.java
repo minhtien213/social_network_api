@@ -29,8 +29,6 @@ public interface PostMapper {
 
     @Mapping(target = "username", source = "user.username")
     @Mapping(target = "postMediaList", expression = "java(mapMediaUrls(post))")
-    @Mapping(target = "likesCount", expression = "java(post.getLikes().size())")
-    @Mapping(target = "commentsCount", expression = "java(post.getComments().size())")
     PostResponseDTO toPostResponseDTO(Post post);
 
     //object -> list string -> trả về client

@@ -1,5 +1,8 @@
 package com.example.social_network_api.service.impl;
 
+import com.example.social_network_api.exception.custom.ForbiddenException;
+import com.example.social_network_api.service.UserService;
+import com.example.social_network_api.utils.AuthUtils;
 import com.example.social_network_api.utils.UploadsUtils;
 import com.example.social_network_api.dto.request.PostRequestDTO;
 import com.example.social_network_api.entity.Post;
@@ -12,6 +15,14 @@ import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.PostService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,10 +34,11 @@ import java.util.List;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @Override
     @Transactional
+    @CacheEvict(value = {"post", "posts", "posts:userId"}, allEntries = true)
     public void deleteById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
@@ -35,11 +47,14 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<Post> findAll() {
-        return postRepository.findAll();
+    @Cacheable(value = "posts", key = "#page + '-' + #size")
+    public Page<Post> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepository.findAll(pageable);
     }
 
     @Override
+    @Cacheable(value = "post", key = "#id")
     public Post findById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
@@ -50,10 +65,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public Post createPost(PostRequestDTO postRequestDTO, String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
+    @Caching(
+            evict = { @CacheEvict(value = "posts", allEntries = true) },
+            put = { @CachePut(value = "post", key = "#result.id") }
+    )    public Post createPost(PostRequestDTO postRequestDTO, String username) {
+        User user = userService.findByUsername(username);
         Post post = new Post();
         post.setContent(postRequestDTO.getContent());
         post.setUser(user);
@@ -74,6 +90,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
+    @CachePut(value = "post", key = "#id")
     public Post updatePost(Long id, PostRequestDTO postRequestDTO, String username) {
         Post existingPost = postRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
@@ -101,4 +118,16 @@ public class PostServiceImpl implements PostService {
         }
         return postRepository.save(existingPost);
     }
+
+    @Override
+    @Cacheable(value = "posts:userId", key = "#userId + '-' + #page + '-' + #size")
+    public Page<Post> findAllByUserId(Long userId, int page, int size) {
+        User existingUser = userService.findById(userId);
+        if(!AuthUtils.getCurrentUsername().equals(existingUser.getUsername())){
+            throw new ForbiddenException("Unauthorized");
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postRepository.findAllByUserId(userId, pageable);
+    }
+
 }

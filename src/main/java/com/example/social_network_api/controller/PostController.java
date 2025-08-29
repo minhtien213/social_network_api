@@ -3,14 +3,12 @@ package com.example.social_network_api.controller;
 import com.example.social_network_api.dto.request.PostRequestDTO;
 import com.example.social_network_api.dto.respone.PostResponseDTO;
 import com.example.social_network_api.entity.Post;
-import com.example.social_network_api.entity.User;
 import com.example.social_network_api.mapper.PostMapper;
-import com.example.social_network_api.repository.PostRepository;
 import com.example.social_network_api.service.PostService;
-import com.example.social_network_api.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,8 +21,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/api/post")
 public class PostController {
-    private final PostRepository postRepository;
-    private final UserService userService;
     private final PostService postService;
     private final PostMapper postMapper;
 
@@ -64,11 +60,10 @@ public class PostController {
     }
 
     @GetMapping("/list-posts")
-    public ResponseEntity<?> getAllPosts() {
-        List<Post> posts = postService.findAll();
-        List<PostResponseDTO> postResponseDTO = posts.stream()
-                .map(post -> postMapper.toPostResponseDTO(post))
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<?>> getAllPosts(@RequestParam(defaultValue = "0") int page,
+                                               @RequestParam(defaultValue = "3") int size) {
+        Page<Post> posts = postService.findAll(page, size);
+        Page<PostResponseDTO> postResponseDTO = posts.map(postMapper::toPostResponseDTO);
         return ResponseEntity.ok(postResponseDTO);
     }
 
@@ -77,4 +72,14 @@ public class PostController {
         postService.deleteById(id);
         return ResponseEntity.ok("Post has been deleted");
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<Page<?>> findAllByUserId(@PathVariable Long userId,
+                                                   @RequestParam(defaultValue = "0") int page,
+                                                   @RequestParam(defaultValue = "3") int size){
+        Page<Post> posts = postService.findAllByUserId(userId, page, size);
+        Page<PostResponseDTO> dtos = posts.map(postMapper::toPostResponseDTO);
+        return ResponseEntity.ok(dtos);
+    }
+
 }

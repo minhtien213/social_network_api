@@ -8,6 +8,7 @@ import com.example.social_network_api.repository.ProfileRepository;
 import com.example.social_network_api.service.ProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,14 +57,14 @@ public class ProfileContoller {
     }
 
     @GetMapping("/list-profiles")
-    public ResponseEntity<?> getAllProfiles() {
-        List<Profile> profiles = profileService.findAll();
-        List<ProfileResponseDTO> profilesResponse = profiles.stream()
-                .map(profile -> profileMapper.toProfileResponseDTO(
+    public ResponseEntity<Page<?>> getAllProfiles(@RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "3") int size) {
+        Page<Profile> profiles = profileService.findAll(page, size);
+        Page<ProfileResponseDTO> profilesResponse = profiles.map(profile -> profileMapper.toProfileResponseDTO(
                         profile,
                         profile.getUser().getFollowerCount(),
                         profile.getUser().getFollowingCount())
-                ).collect(Collectors.toList());
+                );
         return ResponseEntity.ok().body(profilesResponse);
     }
 

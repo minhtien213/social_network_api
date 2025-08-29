@@ -4,6 +4,7 @@ import com.example.social_network_api.entity.Follow;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.repository.FollowRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public interface FollowService {
     Map<String, Boolean> isFriend(Long followerId, Long followingId);
     Map<String, Long> getFriendsCount(Long userId);
 
-    Set<User> getAllFriends(Long userId);
+    Page<User> getAllFriends(Long userId, int page, int size);
 
     Set<User> getFollowers(Long userId);
     Set<User> getFollowing(Long userId);

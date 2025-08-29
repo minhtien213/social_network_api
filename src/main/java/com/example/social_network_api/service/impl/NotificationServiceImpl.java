@@ -10,6 +10,10 @@ import com.example.social_network_api.service.UserService;
 import com.example.social_network_api.utils.AuthUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +23,7 @@ import java.util.List;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     public Notification createAndSentNotification(Long referenceId, User receiver, Notification.NotificationType type) {
         Notification notification = Notification.builder()
@@ -32,13 +36,13 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<Notification> findByReceiverId(Long receiverId) {
-        User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    public Page<Notification> findByReceiverId(Long receiverId, int page, int size) {
+        User receiver = userService.findById(receiverId);
         if(!receiver.getUsername().equals(AuthUtils.getCurrentUsername())) {
             throw new ForbiddenException("User is not allowed to read notifications");
         }
-        return notificationRepository.findByReceiverId(receiverId);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return notificationRepository.findByReceiverId(receiverId, pageable);
     }
 
     @Override
@@ -49,8 +53,9 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<Notification> findAll() {
-        return  notificationRepository.findAll();
+    public Page<Notification> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return  notificationRepository.findAll(pageable);
     }
 
     @Override

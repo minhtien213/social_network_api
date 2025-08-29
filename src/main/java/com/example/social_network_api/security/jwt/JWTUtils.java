@@ -18,7 +18,7 @@ public class JWTUtils {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    private final long ACCESS_TOKEN_VALIDITY = 1000 * 60 * 15;  // 15 phút
+    private final long ACCESS_TOKEN_VALIDITY = 1000 * 60 * 60;  // 60 phút
     private final long REFRESH_TOKEN_VALIDITY = 1000L * 60 * 60 * 24 * 7; // 7 ngày
 
     public String generateToken(Map<String, Object> claims, String username, long validity) {

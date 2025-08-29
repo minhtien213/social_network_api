@@ -13,6 +13,10 @@ import com.example.social_network_api.service.UserService;
 import com.example.social_network_api.utils.AuthUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -140,8 +144,9 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public Set<User> getAllFriends(Long userId) {
-        Set<User> friends = followRepository.findAllFriends(userId, Follow.FollowStatus.ACCEPTED);
+    public Page<User> getAllFriends(Long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<User> friends = followRepository.findAllFriends(userId, Follow.FollowStatus.ACCEPTED, pageable);
         return friends;
     }
 

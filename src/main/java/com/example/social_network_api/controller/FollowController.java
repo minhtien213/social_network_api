@@ -10,6 +10,7 @@ import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.service.FollowService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,10 +72,11 @@ public class FollowController {
     }
 
     @GetMapping("/{userId}/friends")
-    public ResponseEntity<?> getAllFriends(@PathVariable Long userId) {
-        Set<User> friends = followService.getAllFriends(userId);
-        Set<UserResponseDTO> friendsDTO = friends.stream()
-                .map(friend -> userMapper.toUserResponseDTO(friend)).collect(Collectors.toSet());
+    public ResponseEntity<Page<?>> getAllFriends(@PathVariable Long userId,
+                                                 @RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "3") int size) {
+        Page<User> friends = followService.getAllFriends(userId, page, size);
+        Page<UserResponseDTO> friendsDTO = friends.map(userMapper::toUserResponseDTO);
         return ResponseEntity.ok().body(friendsDTO);
     }
 

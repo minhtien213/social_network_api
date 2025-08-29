@@ -8,6 +8,7 @@ import com.example.social_network_api.mapper.CommentMapper;
 import com.example.social_network_api.service.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,11 +69,10 @@ public class CommentController {
 
 
     @GetMapping("/list-comments")
-    public ResponseEntity<List<?>> getAllComments() {
-        List<Comment> comments = commentService.findAll();
-        List<CommentResponseDTO> commentResponseDTOS = comments.stream()
-                .map(comment -> commentMapper.toCommentResponseDTO(comment))
-                .collect(Collectors.toList());
+    public ResponseEntity<Page<?>> getAllComments(@RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "3") int size) {
+        Page<Comment> comments = commentService.findAll(page, size);
+        Page<CommentResponseDTO> commentResponseDTOS = comments.map(commentMapper::toCommentResponseDTO);
         return ResponseEntity.ok(commentResponseDTOS);
     }
 
