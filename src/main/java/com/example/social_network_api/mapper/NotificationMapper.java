@@ -8,6 +8,7 @@ import com.example.social_network_api.service.FollowService;
 import com.example.social_network_api.service.LikeService;
 import com.example.social_network_api.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 
@@ -15,12 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class NotificationMapper {
 
-    private final UserService userService;
-    private final FollowService followService;
-    private final LikeService likeService;
-    private final CommentService commentService;
-
-    public NotificationResponseDTO toDto(Notification notification) {
+    public NotificationResponseDTO toDto(Notification notification, User sender) {
         if (notification == null) {
             return null;
         }
@@ -30,26 +26,10 @@ public class NotificationMapper {
         dto.setCreatedAt(notification.getCreatedAt());
         dto.setType(notification.getType().toString());
         dto.setReferenceId(notification.getReferenceId());
-        dto.setTriggerUserId(getSender(notification).getId());
-        dto.setTriggerUsername(getSender(notification).getUsername());
+        dto.setTriggerUserId(sender.getId());
+        dto.setTriggerUsername(sender.getUsername());
         dto.setMessage(buildMessage(dto));
         return dto;
-    }
-
-
-    public User getSender(Notification notification) {
-        Long id = notification.getReferenceId();
-        User sender = new User();
-        if (notification.getType() == Notification.NotificationType.LIKE) {
-            sender = likeService.findById(id).getUser();
-        }
-        if (notification.getType() == Notification.NotificationType.COMMENT) {
-            sender = commentService.findById(id).getUser();
-        }
-        if (notification.getType() == Notification.NotificationType.FOLLOW) {
-            sender = followService.findById(id).getFollower();
-        }
-        return sender;
     }
 
     public String buildMessage(NotificationResponseDTO dto){

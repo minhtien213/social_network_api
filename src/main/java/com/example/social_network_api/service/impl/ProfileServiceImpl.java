@@ -14,10 +14,6 @@ import com.example.social_network_api.service.ProfileService;
 import com.example.social_network_api.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,11 +34,6 @@ public class ProfileServiceImpl implements ProfileService {
     private final UserService userService;
 
     @Transactional
-    @Caching(
-            evict = { @CacheEvict(value = "profiles", allEntries = true) },
-            put = { @CachePut(value = "profile", key = "#result.id") }
-            //put luôn sau khi tạo để findById không cần query DB
-    )
     public Profile createProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -57,7 +48,6 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Transactional
-    @CachePut(value = "profile", key = "#result.id")
     public Profile updateProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
         User user = userService.findByUsername(username);
         if (user == null) {
@@ -90,7 +80,6 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"profile", "profiles"}, allEntries = true)
     public void deleteById(Long id) {
         Profile profile = profileRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Profile with id " + id + " not found")
@@ -99,7 +88,6 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Cacheable(value = "profiles", key = "#page + '-' + #size")
     public Page<Profile> findAll(int page, int size) {
         if(!AuthUtils.isAdmin()){
             throw new ForbiddenException("Unauthorized");
@@ -109,7 +97,6 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    @Cacheable(value = "profile", key = "#id")
     public Profile findById(Long id) {
         Profile profile = profileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Profile with id " + id + " not found")

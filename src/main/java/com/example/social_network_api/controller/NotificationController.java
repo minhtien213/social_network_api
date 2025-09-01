@@ -26,7 +26,7 @@ public class NotificationController {
                                                     @RequestParam(defaultValue = "3") int size
                                                     ) {
         Page<Notification> notifications = notificationService.findByReceiverId(receiverId, page, size);
-        Page<NotificationResponseDTO> dtos = notifications.map(dto -> notificationMapper.toDto(dto));
+        Page<NotificationResponseDTO> dtos = notifications.map(dto -> notificationMapper.toDto(dto, null));
         return ResponseEntity.ok(dtos);
     }
 }

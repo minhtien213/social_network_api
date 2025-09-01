@@ -11,14 +11,9 @@ import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.exception.custom.UnauthorizedException;
 import com.example.social_network_api.repository.PostRepository;
-import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.service.PostService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +33,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"post", "posts", "posts:userId"}, allEntries = true)
     public void deleteById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
@@ -47,14 +41,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "posts", key = "#page + '-' + #size")
     public Page<Post> findAll(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return postRepository.findAll(pageable);
     }
 
     @Override
-    @Cacheable(value = "post", key = "#id")
     public Post findById(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
@@ -65,10 +57,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @Caching(
-            evict = { @CacheEvict(value = "posts", allEntries = true) },
-            put = { @CachePut(value = "post", key = "#result.id") }
-    )    public Post createPost(PostRequestDTO postRequestDTO, String username) {
+    public Post createPost(PostRequestDTO postRequestDTO, String username) {
         User user = userService.findByUsername(username);
         Post post = new Post();
         post.setContent(postRequestDTO.getContent());
@@ -90,7 +79,6 @@ public class PostServiceImpl implements PostService {
     }
 
     @Transactional
-    @CachePut(value = "post", key = "#id")
     public Post updatePost(Long id, PostRequestDTO postRequestDTO, String username) {
         Post existingPost = postRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
@@ -120,10 +108,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "posts:userId", key = "#userId + '-' + #page + '-' + #size")
     public Page<Post> findAllByUserId(Long userId, int page, int size) {
         User existingUser = userService.findById(userId);
-        if(!AuthUtils.getCurrentUsername().equals(existingUser.getUsername())){
+        if (!AuthUtils.getCurrentUsername().equals(existingUser.getUsername())) {
             throw new ForbiddenException("Unauthorized");
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());

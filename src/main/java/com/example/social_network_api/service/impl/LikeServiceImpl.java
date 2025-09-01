@@ -45,7 +45,11 @@ public class LikeServiceImpl implements LikeService {
                 .user(user)
                 .build();
         Like savedLike = likeRepository.save(like);
-        notificationService.createAndSentNotification(savedLike.getId(), post.getUser(), Notification.NotificationType.LIKE);
+        notificationService.createAndSentNotification(
+                savedLike.getId(),
+                post.getUser(),
+                Notification.NotificationType.LIKE
+        );
         return savedLike;
     }
 

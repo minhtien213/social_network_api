@@ -61,9 +61,13 @@ public class SecurityConfiguration {
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable()) // Tắt CSRF
+        http.csrf(csrf -> csrf.disable()) // Tắt CSRF cho Websocket
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless
                 .authorizeHttpRequests(auth -> auth
+
+                        .requestMatchers("/ws/**").permitAll() // cho phép Websocket
+
+
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/logout").permitAll()
                         .requestMatchers("/auth/refresh").permitAll()
