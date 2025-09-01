@@ -53,9 +53,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Push notification riêng cho user
         messagingTemplate.convertAndSendToUser(
-                receiver.getId().toString(),               // userId dạng String
+                receiver.getUsername(),               // userId dạng String
                 "/queue/notifications",                    // kênh riêng user
-                notificationMapper.toDto(saved, sender)   // payload
+                notificationMapper.toDto(saved, sender)    // payload
         );
 
         return saved;

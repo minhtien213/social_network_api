@@ -18,8 +18,8 @@ public class NotificationResponseDTO {
     private LocalDateTime createdAt;
 
     //người tạo
-    private Long triggerUserId;
-    private String triggerUsername;
+    private Long senderId;
+    private String senderUsername;
 
     private String message; //
 

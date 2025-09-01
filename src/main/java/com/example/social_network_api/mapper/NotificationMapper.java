@@ -26,8 +26,8 @@ public class NotificationMapper {
         dto.setCreatedAt(notification.getCreatedAt());
         dto.setType(notification.getType().toString());
         dto.setReferenceId(notification.getReferenceId());
-        dto.setTriggerUserId(sender.getId());
-        dto.setTriggerUsername(sender.getUsername());
+        dto.setSenderId(sender.getId());
+        dto.setSenderUsername(sender.getUsername());
         dto.setMessage(buildMessage(dto));
         return dto;
     }
@@ -39,7 +39,7 @@ public class NotificationMapper {
         }else{
             text = " bài viết của bạn.";
         }
-        String message = dto.getTriggerUsername().toUpperCase() + " đã " + dto.getType().toLowerCase() + text;
+        String message = dto.getSenderUsername().toUpperCase() + " đã " + dto.getType().toLowerCase() + text;
         return message;
     }
 
