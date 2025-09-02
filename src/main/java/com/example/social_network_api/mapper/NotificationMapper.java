@@ -3,6 +3,9 @@ package com.example.social_network_api.mapper;
 import com.example.social_network_api.dto.respone.NotificationResponseDTO;
 import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.entity.User;
+import com.example.social_network_api.repository.CommentRepository;
+import com.example.social_network_api.repository.FollowRepository;
+import com.example.social_network_api.repository.LikeRepository;
 import com.example.social_network_api.service.CommentService;
 import com.example.social_network_api.service.FollowService;
 import com.example.social_network_api.service.LikeService;
@@ -16,10 +19,22 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class NotificationMapper {
 
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
+    private final FollowRepository followRepository;
+
     public NotificationResponseDTO toDto(Notification notification, User sender) {
         if (notification == null) {
             return null;
         }
+        if (sender == null) {
+            sender = switch (notification.getType()) {
+                case LIKE -> likeRepository.findById(notification.getReferenceId()).get().getUser();
+                case COMMENT -> commentRepository.findById(notification.getReferenceId()).get().getUser();
+                case FOLLOW -> followRepository.findById(notification.getReferenceId()).get().getFollower();
+            };
+        }
+
         NotificationResponseDTO dto = new NotificationResponseDTO();
         dto.setId(notification.getId());
         dto.setIsRead(notification.isRead());

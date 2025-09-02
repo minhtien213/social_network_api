@@ -1,7 +1,6 @@
 package com.example.social_network_api.security;
 
 import com.example.social_network_api.security.jwt.JWTFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -15,25 +14,18 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import com.example.social_network_api.service.UserService;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 public class SecurityConfiguration {
 
-    // Filter để kiểm tra và xác thực JWT token trong mỗi request
     private final JWTFilter jwtFilter;
-
-    // Service để load thông tin user từ database
     private final UserService userService;
 
-    // Constructor injection, @Lazy để tránh vòng lặp bean
     public SecurityConfiguration(JWTFilter jwtFilter, @Lazy UserService userService) {
         this.jwtFilter = jwtFilter;
         this.userService = userService;
     }
 
-    // Bean mã hóa password theo chuẩn BCrypt (bảo mật cao)
-    // Dùng để so sánh password khi user login
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -54,12 +46,6 @@ public class SecurityConfiguration {
         return authProvider;
     }
 
-    /**
-     * - Cấu hình chuỗi filter bảo mật
-     * - Tắt CSRF (vì dùng JWT, không cần CSRF token)
-     * - Chế độ Stateless không lưu session vì sẽ check token mỗi lần request)
-     * - Thêm jwtFilter trước filter UsernamePasswordAuthenticationFilter để check JWT
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -71,6 +57,13 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/ws/**").permitAll() // cho phép Websocket
+                        .requestMatchers(
+                                "/chat.html",   // file test chat massage
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico"
+                        ).permitAll()
 
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/logout").permitAll()
@@ -92,6 +85,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/followers").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/followings").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/friend-counts").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/*/notification-counts").hasAnyRole("USER", "ADMIN")
 
 
                         .requestMatchers(HttpMethod.POST, "/api/post/create").hasAnyRole("USER", "ADMIN")

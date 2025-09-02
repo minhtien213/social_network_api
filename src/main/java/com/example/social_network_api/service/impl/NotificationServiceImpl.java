@@ -4,6 +4,7 @@ import com.example.social_network_api.dto.respone.NotificationResponseDTO;
 import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.ForbiddenException;
+import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.mapper.NotificationMapper;
 import com.example.social_network_api.repository.CommentRepository;
 import com.example.social_network_api.repository.FollowRepository;
@@ -70,6 +71,27 @@ public class NotificationServiceImpl implements NotificationService {
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return notificationRepository.findByReceiverId(receiverId, pageable);
+    }
+
+    @Override
+    public Long countByReceiverIdAndIsReadFalse(String username) {
+        User currentUser = userService.findByUsername(username);
+        return notificationRepository.countByReceiverIdAndIsReadFalse(currentUser.getId());
+    }
+
+    @Override
+    public Notification markAsRead(Long id, String username) {
+
+        Notification existingNotification = notificationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found."));
+
+        User receiver = userService.findById(existingNotification.getReceiver().getId());
+        if(!username.equals(receiver.getUsername())){
+            throw new ForbiddenException("Unauthorized.");
+        }
+
+        existingNotification.setRead(true);
+        return notificationRepository.save(existingNotification);
     }
 
     @Override

@@ -50,7 +50,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         token = token.substring(7);
                         String username = jwtUtils.extractUsername(token);
                             accessor.setUser(() -> username); // set Principal
-                        System.out.println("User connected: " + username);
                     }
                 }
                 return message;
