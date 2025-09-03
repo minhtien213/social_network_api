@@ -9,7 +9,7 @@
 <body>
 <h3>WebSocket JWT Test</h3>
 <script>
-    const token = "THAY_TOKEN_THAT";
+    const token = "eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlX3Rva2VuIjoiYWNjZXNzX3Rva2VuIiwic3ViIjoibWluaHRpZW4iLCJqdGkiOiIxMjE1OTAxMC1kNzc3LTQxOTgtOTVlMS1lMThkMjYwNGI5MTEiLCJpYXQiOjE3NTY4ODkyMDIsImV4cCI6MTc1Njg5MjgwMn0.My4rdIWKqrNNTjTyWulwygD_MDbS_rsRqyd_-Mas0so";
     const socket = new SockJS("http://localhost:8080/ws");
     const stompClient = Stomp.over(socket);
     stompClient.debug = console.log;

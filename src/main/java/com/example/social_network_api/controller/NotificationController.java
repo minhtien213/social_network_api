@@ -23,20 +23,20 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final NotificationMapper notificationMapper;
 
-    @GetMapping("/{receiverId}")
-    public ResponseEntity<Page<?>> findByReceiverId(@PathVariable Long receiverId,
+    @GetMapping("/me")
+    public ResponseEntity<Page<?>> findByReceiverId(Principal principal,
                                                     @RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "3") int size
                                                     ) {
-        Page<Notification> notifications = notificationService.findByReceiverId(receiverId, page, size);
-        Page<NotificationResponseDTO> dtos = notifications.map(dto -> notificationMapper.toDto(dto, null));
+        Page<Notification> notifications = notificationService.findByReceiverId(principal.getName(), page, size);
+        Page<NotificationResponseDTO> dtos = notifications.map(dto -> notificationMapper.toDto(dto));
         return ResponseEntity.ok(dtos);
     }
 
     @PutMapping("/{id}/mark-as-read")
     public ResponseEntity<?> markAsRead(@PathVariable Long id, Principal principal){
         Notification notification = notificationService.markAsRead(id, principal.getName());
-        return ResponseEntity.ok("The notice has been viewed");
+        return ResponseEntity.ok(notificationMapper.toDto(notification));
     }
 
     @GetMapping("/notification-counts")

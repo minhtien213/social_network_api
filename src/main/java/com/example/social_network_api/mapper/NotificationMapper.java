@@ -3,6 +3,7 @@ package com.example.social_network_api.mapper;
 import com.example.social_network_api.dto.respone.NotificationResponseDTO;
 import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.entity.User;
+import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.repository.CommentRepository;
 import com.example.social_network_api.repository.FollowRepository;
 import com.example.social_network_api.repository.LikeRepository;
@@ -23,39 +24,41 @@ public class NotificationMapper {
     private final CommentRepository commentRepository;
     private final FollowRepository followRepository;
 
-    public NotificationResponseDTO toDto(Notification notification, User sender) {
+    public NotificationResponseDTO toDto(Notification notification) {
         if (notification == null) {
             return null;
         }
-        if (sender == null) {
-            sender = switch (notification.getType()) {
-                case LIKE -> likeRepository.findById(notification.getReferenceId()).get().getUser();
-                case COMMENT -> commentRepository.findById(notification.getReferenceId()).get().getUser();
-                case FOLLOW -> followRepository.findById(notification.getReferenceId()).get().getFollower();
-            };
-        }
 
-        NotificationResponseDTO dto = new NotificationResponseDTO();
-        dto.setId(notification.getId());
-        dto.setIsRead(notification.isRead());
-        dto.setCreatedAt(notification.getCreatedAt());
-        dto.setType(notification.getType().toString());
-        dto.setReferenceId(notification.getReferenceId());
-        dto.setSenderId(sender.getId());
-        dto.setSenderUsername(sender.getUsername());
-        dto.setMessage(buildMessage(dto));
-        return dto;
+        User sender = switch (notification.getType()) {
+            case LIKE -> likeRepository.findById(notification.getReferenceId())
+                    .map(like -> like.getUser())
+                    .orElse(null);
+            case COMMENT -> commentRepository.findById(notification.getReferenceId())
+                    .map(comment -> comment.getUser())
+                    .orElse(null);
+            case FOLLOW -> followRepository.findById(notification.getReferenceId())
+                    .map(follow -> follow.getFollower())
+                    .orElse(null);
+        };
+
+        return NotificationResponseDTO.builder()
+                .id(notification.getId())
+                .isRead(notification.isRead())
+                .createdAt(notification.getCreatedAt())
+                .type(notification.getType().toString())
+                .referenceId(notification.getReferenceId())
+                .senderId(sender != null ? sender.getId() : null)
+                .senderUsername(sender != null ? sender.getUsername() : null)
+                .message(sender != null
+                        ? buildMessage(sender.getUsername(), notification.getType().toString())
+                        : "Thông báo này không còn khả dụng.")
+                .build();
     }
 
-    public String buildMessage(NotificationResponseDTO dto){
-        String text = "";
-        if(dto.getType().equals("FOLLOW")){
-            text = " bạn.";
-        }else{
-            text = " bài viết của bạn.";
-        }
-        String message = dto.getSenderUsername().toUpperCase() + " đã " + dto.getType().toLowerCase() + text;
-        return message;
+    private String buildMessage(String senderUsername, String type) {
+        String text = type.equals("FOLLOW") ? " bạn." : " bài viết của bạn.";
+        return senderUsername.toUpperCase() + " đã " + type.toLowerCase() + text;
     }
+
 
 }

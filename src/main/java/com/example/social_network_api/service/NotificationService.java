@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 
 public interface NotificationService extends IService<Notification> {
     Notification createAndSentNotification(Long referenceId, User receiver, Notification.NotificationType type);
-    Page<Notification> findByReceiverId(Long receiverId, int page, int size);
+    Page<Notification> findByReceiverId(String username, int page, int size);
     Notification markAsRead(Long id, String username);
     Long countByReceiverIdAndIsReadFalse(String username);
 

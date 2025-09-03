@@ -1,4 +1,4 @@
-package com.example.social_network_api.security.jwt;
+package com.example.social_network_api.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;

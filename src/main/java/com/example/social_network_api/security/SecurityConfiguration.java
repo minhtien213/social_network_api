@@ -59,6 +59,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/ws/**").permitAll() // cho phép Websocket
                         .requestMatchers(
                                 "/chat.html",   // file test chat massage
+                                "/notification.html",       // file test notification
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
@@ -85,6 +86,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/followers").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/followings").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/friend-counts").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/me").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/notifications/*/notification-counts").hasAnyRole("USER", "ADMIN")
 
 

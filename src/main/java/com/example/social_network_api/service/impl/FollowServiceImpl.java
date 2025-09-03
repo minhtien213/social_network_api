@@ -19,7 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -66,7 +65,10 @@ public class FollowServiceImpl implements FollowService {
                 .followStatus(Follow.FollowStatus.PENDING)
                 .build();
         Follow savedFollow = followRepository.save(follow);
-        notificationService.createAndSentNotification(savedFollow.getId(), following, Notification.NotificationType.FOLLOW);
+
+        User receiver = userService.findById(savedFollow.getFollowing().getId());
+
+        notificationService.createAndSentNotification(savedFollow.getId(), receiver, Notification.NotificationType.FOLLOW);
         return savedFollow;
     }
 

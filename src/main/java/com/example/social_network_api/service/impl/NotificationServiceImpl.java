@@ -44,19 +44,10 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
         Notification saved = notificationRepository.save(notification);
 
-        User sender = switch (type) {
-            case LIKE -> likeRepository.findById(referenceId).get().getUser();
-            case COMMENT -> commentRepository.findById(referenceId).get().getUser();
-            case FOLLOW -> followRepository.findById(referenceId).get().getFollower();
-        };
-
-        System.out.println("Send notification to userId: " + receiver.getId());
-
-        // Push notification riêng cho user
         messagingTemplate.convertAndSendToUser(
-                receiver.getUsername(),               // userId dạng String
-                "/queue/notifications",                    // kênh riêng user
-                notificationMapper.toDto(saved, sender)    // payload
+                receiver.getUsername(),
+                "/queue/notifications",
+                notificationMapper.toDto(saved)
         );
 
         return saved;
@@ -64,13 +55,10 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public Page<Notification> findByReceiverId(Long receiverId, int page, int size) {
-        User receiver = userService.findById(receiverId);
-        if(!receiver.getUsername().equals(AuthUtils.getCurrentUsername())) {
-            throw new ForbiddenException("User is not allowed to read notifications");
-        }
+    public Page<Notification> findByReceiverId(String username, int page, int size) {
+        User receiver = userService.findByUsername(username);
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return notificationRepository.findByReceiverId(receiverId, pageable);
+        return notificationRepository.findByReceiverId(receiver.getId(), pageable);
     }
 
     @Override
