@@ -1,6 +1,6 @@
 package com.example.social_network_api.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Getter
@@ -10,8 +10,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class FollowRequestDTO {
-    @NonNull
+    @NotNull(message = "followerId không được null")
     private Long followerId;
-    @NonNull
+    @NotNull(message = "followingId không được null")
     private Long followingId;
 }

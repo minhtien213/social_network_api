@@ -30,7 +30,7 @@ public class UserController {
     public ResponseEntity<Page<?>> getAllUsers(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "3") int size) {
         Page<User> users = userService.findAll(page, size);
-        Page<UserResponseDTO> usersResponse = users.map(user -> userMapper.toUserResponseDTO(user));
+        Page<UserResponseDTO> usersResponse = users.map(userMapper::toUserResponseDTO);
         return ResponseEntity.status(HttpStatus.OK).body(usersResponse);
     }
 

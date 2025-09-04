@@ -239,6 +239,12 @@ public class UserServiceImpl implements UserService {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+        if (!AuthUtils.getCurrentUsername().equals(existingUser.getUsername())
+                && !AuthUtils.isAdmin()) {
+            throw new ForbiddenException("Unauthorized");
+        }
+
+        //check các id còn lại trong db xem có id nào trùng username muốn update không
         if (userRepository.existsByUsernameAndIdNot(userRequestDTO.getUsername(), id)) {
             throw new ConflictException("Username already exists!");
         }
@@ -280,7 +286,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> findAll(int page, int size) {
-        if(!AuthUtils.isAdmin()){
+        if (!AuthUtils.isAdmin()) {
             throw new ForbiddenException("Unauthorized");
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());

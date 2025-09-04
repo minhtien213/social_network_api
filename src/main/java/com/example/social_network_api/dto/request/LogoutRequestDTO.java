@@ -10,8 +10,8 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class LogoutRequestDTO {
-    @NotBlank
+    @NotBlank(message = "Access token không được để trống")
     private String accessToken;
-    @NotBlank
+    @NotBlank(message = "Refresh token không được để trống")
     private String refreshToken;
 }

@@ -97,17 +97,17 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/follows/*/accept").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/follows/*/reject").hasAnyRole("USER", "ADMIN")
 
-                        .requestMatchers(HttpMethod.PUT, "/api/user/{id}").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/post/{id}").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/profile/{id}").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/comment/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/user/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/post/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/profile/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/comment/*").hasAnyRole("USER", "ADMIN")
 
-                        .requestMatchers(HttpMethod.DELETE, "/api/user/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/post/{id}").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/comment/{id}").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/user/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/post/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/comment/*").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/follows/*/cancel").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/follows/*/unfollow").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/profile/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/profile/*").hasRole("ADMIN")
 
                         .anyRequest().authenticated() // Các request khác phải có token hợp lệ
                 )
