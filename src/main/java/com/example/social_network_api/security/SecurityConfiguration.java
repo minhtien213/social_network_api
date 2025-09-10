@@ -1,6 +1,7 @@
 package com.example.social_network_api.security;
 
 import com.example.social_network_api.security.jwt.JWTFilter;
+import com.example.social_network_api.security.ratelimiting.RateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -20,10 +21,12 @@ public class SecurityConfiguration {
 
     private final JWTFilter jwtFilter;
     private final UserService userService;
+    private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfiguration(JWTFilter jwtFilter, @Lazy UserService userService) {
+    public SecurityConfiguration(JWTFilter jwtFilter, @Lazy UserService userService, RateLimitFilter rateLimitFilter) {
         this.jwtFilter = jwtFilter;
         this.userService = userService;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -112,7 +115,8 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated() // Các request khác phải có token hợp lệ
                 )
                 .authenticationProvider(authenticationProvider()) // Provider dùng DB + BCrypt
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // Thêm filter JWT trước filter mặc định
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // thêm filter JWT trước filter mặc định
+                .addFilterAfter(rateLimitFilter, JWTFilter.class); // thêm RateLimitFilter chạy sau JWTFilter
 
         return http.build();
     }
