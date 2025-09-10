@@ -36,10 +36,18 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
-        <!-- Thymeleaf -->
+        <!-- Google API Client (chứa GoogleIdTokenVerifier, GoogleIdToken, v.v.) -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <!-- Google HTTP Client với Jackson2 support (chứa JacksonFactory) -->
+        <dependency>
+            <groupId>com.google.http-client</groupId>
+            <artifactId>google-http-client-jackson2</artifactId>
+            <version>1.43.3</version>
         </dependency>
 
         <!-- Data Redis -->

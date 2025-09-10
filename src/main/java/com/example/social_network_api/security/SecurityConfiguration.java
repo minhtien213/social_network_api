@@ -62,19 +62,15 @@ public class SecurityConfiguration {
                         .requestMatchers("/ws/**").permitAll() // cho phép Websocket
                         .requestMatchers(
                                 "/chat.html",   // file test chat massage
-                                "/notification.html",       // file test notification
+                                "/notification.html",    // file test notification
+                                "/oauth2_google.html",    // file test goole login
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
                                 "/favicon.ico"
                         ).permitAll()
 
-                        .requestMatchers("/auth/login").permitAll()
-                        .requestMatchers("/auth/logout").permitAll()
-                        .requestMatchers("/auth/refresh").permitAll()
-                        .requestMatchers("/auth/register").permitAll()
-                        .requestMatchers("/auth/reset-request").permitAll()
-                        .requestMatchers("/auth/reset-password").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/user/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/post/**").hasAnyRole("USER", "ADMIN")
