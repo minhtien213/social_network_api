@@ -8,22 +8,24 @@ theo dõi người dùng, chat realtime qua WebSocket, thông báo realtime, g�
 ---
 
 ## ✨ Tính năng chính
-- 🔑 Đăng ký & Đăng nhập (Spring Security + JWT)
-- 💬 Đăng bài viết
-- 💬 Like bài viết
-- 💬 Comment bài viết
-- 👥 Follow / Unfollow người dùng  
-- 💬 Chat realtime (WebSocket + STOMP)  
-- 🔔 Thông báo realtime (WebSocket)
-- 📧 Gửi email qua Gmail SMTP  
-- 🗄️ Cache với Redis
+-  Đăng ký & Đăng nhập (Spring Security + JWT)
+-  Đăng bài viết
+-  Like bài viết
+-  Comment bài viết
+-  Follow / Unfollow người dùng  
+-  Chat realtime (WebSocket + STOMP)  
+-  Thông báo realtime (WebSocket)
+-  Gửi email qua Gmail SMTP  
+-  Cache với Redis
+-  Rate limiting
+-  Login with google OAuth2
   
 ---
 
 ## 🛠️ Công nghệ sử dụng
 - **Ngôn ngữ:** Java 17  
 - **Framework:** Spring Boot 3.5.4  
-- **Bảo mật:** Spring Security, JWT (jjwt 0.11.5)  
+- **Bảo mật:** Spring Security, JWT, OAuth2 (jjwt 0.11.5)  
 - **CSDL:** MySQL 8 (MySQL Connector/J)  
 - **Cache:** Redis  
 - **Realtime:** WebSocket  
