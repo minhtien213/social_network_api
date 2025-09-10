@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<h3>WebSocket JWT Test</h3>
+<script>
+    const token = "eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlX3Rva2VuIjoiYWNjZXNzX3Rva2VuIiwic3ViIjoibWluaHRpZW4iLCJqdGkiOiIxMjE1OTAxMC1kNzc3LTQxOTgtOTVlMS1lMThkMjYwNGI5MTEiLCJpYXQiOjE3NTY4ODkyMDIsImV4cCI6MTc1Njg5MjgwMn0.My4rdIWKqrNNTjTyWulwygD_MDbS_rsRqyd_-Mas0so";
+    const socket = new SockJS("http://localhost:8080/ws");
+    const stompClient = Stomp.over(socket);
+    stompClient.debug = console.log;
+
+    stompClient.connect(
+        { Authorization: "Bearer " + token },
+        frame => {
+            console.log("✅ Connected!", frame);
+            stompClient.subscribe("/user/queue/notifications", msg => console.log("📩", msg.body));
+        },
+        error => console.error("❌ STOMP error:", error)
+    );
+</script>
+</body>
+</html>
