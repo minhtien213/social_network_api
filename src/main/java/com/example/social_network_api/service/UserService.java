@@ -4,6 +4,7 @@ import com.example.social_network_api.dto.request.ResetPasswordDTO;
 import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.entity.User;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -12,11 +13,11 @@ import java.util.Map;
 public interface UserService extends UserDetailsService, IService<User> {
 
     User findByUsername(String username);
-
     User findByEmail(String email);
 
-    void disableUser(Long id);
+    Page<User> findByFullName(String keyword, int page, int size);
 
+    void disableUser(Long id);
     void enableUser(Long id);
 
     Map<String, String> login(String username, String password);

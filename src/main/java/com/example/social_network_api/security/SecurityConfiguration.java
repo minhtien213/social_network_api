@@ -78,8 +78,8 @@ public class SecurityConfiguration {
 
                         .requestMatchers(HttpMethod.GET, "/api/user/list-users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/profile/list-profiles").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/post/list-posts").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/comment/list-comments").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/post/list-posts").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/comment/list-comments").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/like/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/friends").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/followers").hasAnyRole("USER", "ADMIN")
@@ -111,8 +111,8 @@ public class SecurityConfiguration {
                         .anyRequest().authenticated() // Các request khác phải có token hợp lệ
                 )
                 .authenticationProvider(authenticationProvider()) // Provider dùng DB + BCrypt
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class) // thêm filter JWT trước filter mặc định
-                .addFilterAfter(rateLimitFilter, JWTFilter.class); // thêm RateLimitFilter chạy sau JWTFilter
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)// thêm RateLimitFilter chạy trước JWTFilter
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // thêm filter JWT trước filter mặc định
 
         return http.build();
     }

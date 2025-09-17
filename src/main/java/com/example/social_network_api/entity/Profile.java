@@ -29,6 +29,7 @@ public class Profile {
     private LocalDate birthday;
     private boolean gender;
     private String location;
+    private String phone;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

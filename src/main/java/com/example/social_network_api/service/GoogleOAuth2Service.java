@@ -23,8 +23,8 @@ import java.util.*;
 @RequiredArgsConstructor
 public class GoogleOAuth2Service {
 
-    @Value("${google.client.id}")
-    String googleClientId;
+//    @Value("${google.client.id}")
+    String googleClientId = "711156209427-i9t1kcc0705ggtifi24j477k3pvc5e11.apps.googleusercontent.com";
 
     private final UserRepository userRepository;
     private final JWTUtils jwtUtils;

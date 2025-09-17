@@ -21,6 +21,7 @@ public class ProfileResponseDTO {
     private LocalDate birthday;
     private boolean gender;
     private String location;
+    private String phone;
     private int followerCount;
     private int followingCount;
 }

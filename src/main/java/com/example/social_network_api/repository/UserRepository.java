@@ -1,8 +1,13 @@
 package com.example.social_network_api.repository;
 
+import com.example.social_network_api.entity.Profile;
 import com.example.social_network_api.entity.Role;
 import com.example.social_network_api.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -11,6 +16,9 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
+
+    @Query("select u from User u join u.profile p where lower(p.fullName) like lower(concat('%', :keyword, '%'))")
+    Page<User> findByFullName(@Param("keyword") String keyword, Pageable pageable);
 
     //check tồn tại cả db
     boolean existsByUsername(String username);

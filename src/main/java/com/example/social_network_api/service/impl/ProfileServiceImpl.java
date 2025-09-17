@@ -73,6 +73,7 @@ public class ProfileServiceImpl implements ProfileService {
         existingProfile.setBirthday(profileRequestDTO.getBirthday());
         existingProfile.setGender(profileRequestDTO.isGender());
         existingProfile.setLocation(profileRequestDTO.getLocation());
+        existingProfile.setPhone(profileRequestDTO.getPhone());
 
         Profile profileSaved = profileRepository.save(existingProfile);
         return profileSaved;
@@ -102,5 +103,12 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new ResourceNotFoundException("Profile with id " + id + " not found")
         );
         return profile;
+    }
+
+    @Override
+    public Page<Profile> findByFullName(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Profile> profiles = profileRepository.findByFullName(keyword, pageable);
+        return profiles;
     }
 }

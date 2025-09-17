@@ -277,11 +277,17 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
-    // Tìm user theo username
     @Override
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    @Override
+    public Page<User> findByFullName(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<User> users = userRepository.findByFullName(keyword, pageable);
+        return users;
     }
 
     @Override

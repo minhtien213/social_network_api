@@ -56,15 +56,29 @@ public class ProfileContoller {
                 profile.getUser().getFollowerCount(), profile.getUser().getFollowingCount()));
     }
 
-    @GetMapping("/list-profiles")
-    public ResponseEntity<Page<?>> getAllProfiles(@RequestParam(defaultValue = "0") int page,
-                                            @RequestParam(defaultValue = "3") int size) {
-        Page<Profile> profiles = profileService.findAll(page, size);
-        Page<ProfileResponseDTO> profilesResponse = profiles.map(profile -> profileMapper.toProfileResponseDTO(
+    @GetMapping("/search")
+    public ResponseEntity<Page<?>> getProfileByFullName(@RequestParam String keyword, int page, int size) {
+
+        Page<Profile> profiles = profileService.findByFullName(keyword, page, size);
+
+        Page<ProfileResponseDTO> dtos = profiles
+                .map(profile -> profileMapper.toProfileResponseDTO(
                         profile,
                         profile.getUser().getFollowerCount(),
-                        profile.getUser().getFollowingCount())
-                );
+                        profile.getUser().getFollowingCount()));
+
+        return ResponseEntity.ok().body(dtos);
+    }
+
+    @GetMapping("/list-profiles")
+    public ResponseEntity<Page<?>> getAllProfiles(@RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "3") int size) {
+        Page<Profile> profiles = profileService.findAll(page, size);
+        Page<ProfileResponseDTO> profilesResponse = profiles.map(profile -> profileMapper.toProfileResponseDTO(
+                profile,
+                profile.getUser().getFollowerCount(),
+                profile.getUser().getFollowingCount())
+        );
         return ResponseEntity.ok().body(profilesResponse);
     }
 

@@ -26,6 +26,15 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userMapper.toUserResponseDTO(user));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<?>> findByFullName(@RequestParam String keyword,
+                                        @RequestParam(defaultValue = "0") int page,
+                                        @RequestParam(defaultValue = "3") int size) {
+        Page<User> users = userService.findByFullName(keyword, page, size);
+        Page<UserResponseDTO> dtos = users.map(userMapper::toUserResponseDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(dtos);
+    }
+
     @GetMapping("/list-users")
     public ResponseEntity<Page<?>> getAllUsers(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "3") int size) {

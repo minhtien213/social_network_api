@@ -22,8 +22,8 @@ import java.io.IOException;
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
-    private final JWTUtils jwtUtils; // Class tiện ích để xử lý JWT (tạo, parse, validate)
-    private final UserDetailsService userDetailsService; // Để load thông tin user từ DB
+    private final JWTUtils jwtUtils;
+    private final UserDetailsService userDetailsService;
 
     // @Lazy giúp tránh vòng lặp phụ thuộc (bean cycle)
     public JWTFilter(JWTUtils jwtUtils, @Lazy UserDetailsService userDetailsService) {
@@ -40,28 +40,20 @@ public class JWTFilter extends OncePerRequestFilter {
         String username = null;
         String token = null;
 
-        // 1️⃣ Lấy token từ Header "Authorization"
         final String authHeader = request.getHeader("Authorization");
-        // 2️⃣ Nếu header có dạng "Bearer abc.def.ghi" → cắt lấy token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7); // Bỏ chữ "Bearer "
             try {
-                // 3️⃣ Dùng JWTUtils để trích xuất username từ token
                 username = jwtUtils.extractUsername(token);
             } catch (Exception e) {
                 throw new UsernameNotFoundException("Invalid token");
             }
         }
-        // 5️⃣ Kiểm tra:
-        // - Có username từ token
-        // - SecurityContext chưa có Authentication (nghĩa là user chưa đăng nhập)
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // 6️⃣ Load UserDetails từ DB
+
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // 7️⃣ Kiểm tra token có hợp lệ với userDetails hay không
             if (jwtUtils.isTokenValid(token, userDetails)) {
-                // 8️⃣ Tạo đối tượng Authentication để Spring Security biết user đã xác thực
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,       // Principal
@@ -69,15 +61,15 @@ public class JWTFilter extends OncePerRequestFilter {
                                 userDetails.getAuthorities() // Roles/Authorities
                         );
 
-                // 9️⃣ Gắn thông tin request vào Authentication
+                // Gắn thông tin request vào Authentication
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // 🔟 Đưa Authentication vào SecurityContext → Spring biết request này đã xác thực
+                // Đưa Authentication vào SecurityContext → Spring biết request này đã xác thực
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
-        // 1️⃣1️⃣ Cho request đi tiếp qua các filter tiếp theo
+        // Cho request đi tiếp qua các filter tiếp theo
         filterChain.doFilter(request, response);
     }
 }
