@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @Builder
 public class ProfileRequestDTO {
 
-    @NotBlank(message = "Họ tên không được để trống")
+//    @NotBlank(message = "Họ tên không được để trống")
     @Size(max = 50, message = "Họ tên tối đa 50 ký tự")
     private String fullName;
 
@@ -32,7 +32,7 @@ public class ProfileRequestDTO {
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate birthday;
 
-    private boolean gender;
+    private Boolean gender;
 
     @Size(max = 100, message = "Địa điểm tối đa 100 ký tự")
     private String location;

@@ -27,7 +27,7 @@ public class Profile {
     private String avatarUrl;
     @JsonFormat(pattern = "dd/MM/yyyy")
     private LocalDate birthday;
-    private boolean gender;
+    private Boolean gender;
     private String location;
     private String phone;
 

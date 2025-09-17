@@ -55,11 +55,11 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         Profile existingProfile = profileRepository.findByUserId(user.getId()).orElseThrow(
-                () -> new RuntimeException("Profile not found")
+                () -> new ResourceNotFoundException("Profile not found")
         );
 
         if(!existingProfile.getUser().getUsername().equals(username) && !AuthUtils.isAdmin()) {
-            throw new RuntimeException("Unauthorized attempt to update profile");
+            throw new ForbiddenException("Unauthorized attempt to update profile");
         }
 
         if(avatarUrl != null) {
@@ -68,12 +68,24 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         existingProfile.setUpdatedAt(LocalDateTime.now());
-        existingProfile.setFullName(profileRequestDTO.getFullName());
-        existingProfile.setBio(profileRequestDTO.getBio());
-        existingProfile.setBirthday(profileRequestDTO.getBirthday());
-        existingProfile.setGender(profileRequestDTO.isGender());
-        existingProfile.setLocation(profileRequestDTO.getLocation());
-        existingProfile.setPhone(profileRequestDTO.getPhone());
+        if (profileRequestDTO.getFullName() != null) {
+            existingProfile.setFullName(profileRequestDTO.getFullName());
+        }
+        if (profileRequestDTO.getBio() != null) {
+            existingProfile.setBio(profileRequestDTO.getBio());
+        }
+        if (profileRequestDTO.getBirthday() != null) {
+            existingProfile.setBirthday(profileRequestDTO.getBirthday());
+        }
+        if (profileRequestDTO.getLocation() != null) {
+            existingProfile.setLocation(profileRequestDTO.getLocation());
+        }
+        if (profileRequestDTO.getPhone() != null) {
+            existingProfile.setPhone(profileRequestDTO.getPhone());
+        }
+        if (profileRequestDTO.getGender() != null) {
+            existingProfile.setGender(profileRequestDTO.getGender());
+        }
 
         Profile profileSaved = profileRepository.save(existingProfile);
         return profileSaved;
