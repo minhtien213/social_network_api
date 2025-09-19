@@ -38,11 +38,12 @@ public class ProfileContoller {
         );
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<?> updateProfile(@Valid @RequestPart ProfileRequestDTO profileRequestDTO,
-                                           @RequestPart(value = "avatarUrl", required = false) MultipartFile avatarUrl,
-                                           Principal principal) {
-        Profile updatedProfile = profileService.updateProfile(profileRequestDTO, avatarUrl, principal.getName());
+    @PutMapping("/update/{userId}")
+    public ResponseEntity<?> updateProfile(@PathVariable Long userId,
+                                           @Valid @RequestPart ProfileRequestDTO profileRequestDTO,
+                                           @RequestPart(value = "avatarUrl", required = false) MultipartFile avatarUrl
+    ) {
+        Profile updatedProfile = profileService.updateProfile(userId, profileRequestDTO, avatarUrl);
         return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(updatedProfile,
                 updatedProfile.getUser().getFollowerCount(),
                 updatedProfile.getUser().getFollowingCount()

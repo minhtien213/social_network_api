@@ -7,7 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface ProfileService extends IService<Profile> {
     public  Profile createProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username);
-    public  Profile updateProfile(ProfileRequestDTO profileRequestDTO,MultipartFile avatarUrl, String username);
+    public  Profile updateProfile(Long userId, ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl);
 
     Page<Profile> findByFullName(String keyword, int page, int size);
 }

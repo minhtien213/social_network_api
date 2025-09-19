@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
 
-    @Query("select u from User u join u.profile p where lower(p.fullName) like lower(concat('%', :keyword, '%'))")
+    @Query("select u from User u join u.profile p where p.fullName like concat('%', :keyword, '%')")
     Page<User> findByFullName(@Param("keyword") String keyword, Pageable pageable);
 
     //check tồn tại cả db

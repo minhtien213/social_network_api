@@ -42,9 +42,8 @@
       })
       .then(res => res.json())
       .then(data => {
-        console.log("BE trả về:", data);
-        alert("AccessToken: " + data.accessToken);
-        alert("RefreshToken: " + data.refreshToken);
+        console.log("AccessToken: " + data.accessToken);
+        console.log("RefreshToken: " + data.refreshToken);
       })
       .catch(err => console.error(err));
     }

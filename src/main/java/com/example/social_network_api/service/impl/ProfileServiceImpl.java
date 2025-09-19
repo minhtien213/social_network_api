@@ -48,8 +48,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Transactional
-    public Profile updateProfile(ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl, String username) {
-        User user = userService.findByUsername(username);
+    public Profile updateProfile(Long userId, ProfileRequestDTO profileRequestDTO, MultipartFile avatarUrl) {
+        User user = userService.findById(userId);
         if (user == null) {
             throw new ResourceNotFoundException("User not found");
         }
@@ -58,7 +58,7 @@ public class ProfileServiceImpl implements ProfileService {
                 () -> new ResourceNotFoundException("Profile not found")
         );
 
-        if(!existingProfile.getUser().getUsername().equals(username) && !AuthUtils.isAdmin()) {
+        if(!existingProfile.getUser().getUsername().equals(user.getUsername()) && !AuthUtils.isAdmin()) {
             throw new ForbiddenException("Unauthorized attempt to update profile");
         }
 
@@ -67,7 +67,6 @@ public class ProfileServiceImpl implements ProfileService {
             existingProfile.setAvatarUrl(avatarPath);
         }
 
-        existingProfile.setUpdatedAt(LocalDateTime.now());
         if (profileRequestDTO.getFullName() != null) {
             existingProfile.setFullName(profileRequestDTO.getFullName());
         }
@@ -86,6 +85,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (profileRequestDTO.getGender() != null) {
             existingProfile.setGender(profileRequestDTO.getGender());
         }
+        existingProfile.setUpdatedAt(LocalDateTime.now());
 
         Profile profileSaved = profileRepository.save(existingProfile);
         return profileSaved;

@@ -1,6 +1,7 @@
 package com.example.social_network_api.service.impl;
 
 import com.example.social_network_api.dto.request.ResetPasswordDTO;
+import com.example.social_network_api.dto.request.UpdateUserRequestDTO;
 import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.entity.PasswordResetToken;
 import com.example.social_network_api.entity.Profile;
@@ -234,7 +235,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updateUser(Long id, UserRequestDTO userRequestDTO) {
+    public User updateUser(Long id, UpdateUserRequestDTO updateUserRequestDTO) {
         User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -244,23 +245,34 @@ public class UserServiceImpl implements UserService {
         }
 
         //check các id còn lại trong db xem có id nào trùng username muốn update không
-        if (userRepository.existsByUsernameAndIdNot(userRequestDTO.getUsername(), id)) {
+        if (userRepository.existsByUsernameAndIdNot(updateUserRequestDTO.getUsername(), id)) {
             throw new ConflictException("Username already exists!");
         }
 
-        if (userRepository.existsByEmailAndIdNot(userRequestDTO.getEmail(), id)) {
+        if (userRepository.existsByEmailAndIdNot(updateUserRequestDTO.getEmail(), id)) {
             throw new ConflictException("Email already exists!");
         }
 
-        // Copy field từ user sang existingUser nhưng bỏ qua các field id, password...
-        BeanUtils.copyProperties(
-                userRequestDTO,
-                existingUser,
-                "id", "password", "roles", "enabled", "createdAt"
-        );
-        if (userRequestDTO.getPassword() != null && !userRequestDTO.getPassword().isBlank()) {
-            existingUser.setPassword(passwordEncoder.encode(userRequestDTO.getPassword()));
+        if(updateUserRequestDTO.getUsername() != null){
+            existingUser.setUsername(updateUserRequestDTO.getUsername());
         }
+        if(updateUserRequestDTO.getEmail() != null){
+            existingUser.setEmail(updateUserRequestDTO.getEmail());
+        }
+        if(updateUserRequestDTO.getFirstName() != null){
+            existingUser.setFirstName(updateUserRequestDTO.getFirstName());
+        }
+        if(updateUserRequestDTO.getLastName() != null){
+            existingUser.setLastName(updateUserRequestDTO.getLastName());
+        }
+        if (updateUserRequestDTO.getPassword() != null && !updateUserRequestDTO.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(updateUserRequestDTO.getPassword()));
+        }
+        existingUser.setUpdatedAt(LocalDateTime.now());
+
+        // Chỉ set các field != null
+        // userMapper.updateUserFromDto(userRequestDTO, existingUser);
+
         return userRepository.save(existingUser);
     }
 

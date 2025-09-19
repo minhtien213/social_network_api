@@ -1,6 +1,7 @@
 package com.example.social_network_api.service;
 
 import com.example.social_network_api.dto.request.ResetPasswordDTO;
+import com.example.social_network_api.dto.request.UpdateUserRequestDTO;
 import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.entity.User;
 import jakarta.validation.Valid;
@@ -31,6 +32,6 @@ public interface UserService extends UserDetailsService, IService<User> {
 
     void resetPassword(String token, @Valid @RequestBody ResetPasswordDTO resetPasswordDTO);
 
-    User updateUser(Long id, UserRequestDTO userRequestDTO);
+    User updateUser(Long id, UpdateUserRequestDTO updateUserRequestDTO);
 
 }

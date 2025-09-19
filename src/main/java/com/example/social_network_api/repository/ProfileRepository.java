@@ -15,7 +15,7 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     Optional<Profile> findByUserId(Long userId);
     void deleteByUserId(Long id);
 
-    @Query("select p from Profile p where LOWER(p.fullName) like LOWER(CONCAT('%', :keyword, '%'))")
+    @Query("select p from Profile p where p.fullName like concat('%', :keyword, '%')")
     Page<Profile> findByFullName(@Param("keyword") String keyword, Pageable pageable);
 }
 

@@ -1,5 +1,6 @@
 package com.example.social_network_api.controller;
 
+import com.example.social_network_api.dto.request.UpdateUserRequestDTO;
 import com.example.social_network_api.dto.request.UserRequestDTO;
 import com.example.social_network_api.dto.respone.UserResponseDTO;
 import com.example.social_network_api.entity.User;
@@ -64,8 +65,8 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id,
-                                        @Valid @RequestBody UserRequestDTO userRequestDTO) {
-            User updatedUser = userService.updateUser(id, userRequestDTO);
+                                        @Valid @RequestBody UpdateUserRequestDTO updateUserRequestDTO) {
+            User updatedUser = userService.updateUser(id, updateUserRequestDTO);
             return ResponseEntity.ok(userMapper.toUserResponseDTO(updatedUser));
     }
 
