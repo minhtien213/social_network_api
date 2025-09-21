@@ -34,4 +34,6 @@ public interface UserService extends UserDetailsService, IService<User> {
 
     User updateUser(Long id, UpdateUserRequestDTO updateUserRequestDTO);
 
+    Page<User>  findByFirstNameAndLastName(String keyword, int page, int size);
+
 }

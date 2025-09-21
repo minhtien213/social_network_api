@@ -22,11 +22,11 @@ public class Comment {
     private String mediaUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
     @Column(nullable = false, updatable = false)

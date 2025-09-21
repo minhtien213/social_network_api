@@ -17,4 +17,6 @@ public class PostResponseDTO {
     private List<String> postMediaList;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long likeCount;
+    private Long commentCount;
 }

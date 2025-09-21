@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -80,6 +81,12 @@ public class CommentController {
     public ResponseEntity<?> deleteComment(@PathVariable Long id) {
         commentService.deleteById(id);
         return ResponseEntity.ok("Comment has been deleted");
+    }
+
+    @GetMapping("/{postId}/count")
+    public ResponseEntity<?> countCommentByPostId(@PathVariable Long postId){
+        Long count = commentService.countCommentByPostId(postId);
+        return ResponseEntity.ok(Map.of("count", count));
     }
 
 }

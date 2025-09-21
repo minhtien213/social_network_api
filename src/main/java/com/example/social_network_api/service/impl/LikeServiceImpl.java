@@ -97,14 +97,14 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public List<String> getUsernameLikedPost(Long postId) {
         Post existingPost = postService.findById(postId);
-        List<Like> likes = likeRepository.findAllByPostId(postId);
+        List<Like> likes = likeRepository.findAllByPostId(existingPost.getId());
         return likes.stream().map(like -> like.getUser().getUsername()).collect(Collectors.toList());
     }
 
     @Override
-    public Map<String, Long> getLikedPostCount(Long postId) {
+    public Map<String, Long> countLikedByPostId(Long postId) {
         Post existingPost = postService.findById(postId);
-        Long count = likeRepository.getLikedPostCount(postId);
+        Long count = likeRepository.countLikedByPostId(postId);
         return Map.of("likeCount", count);
     }
 

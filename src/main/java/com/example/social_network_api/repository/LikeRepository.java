@@ -4,6 +4,7 @@ import com.example.social_network_api.entity.Like;
 import com.example.social_network_api.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,5 +16,5 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     Boolean existsByPostIdAndUserId(Long postId, Long userId);
     List<Like> findAllByPostId(Long postId);
     @Query("SELECT count(l) From Like l where l.post.id = :postId ")
-    Long getLikedPostCount(Long postId);
+    Long countLikedByPostId(@Param("postId") Long postId);
 }

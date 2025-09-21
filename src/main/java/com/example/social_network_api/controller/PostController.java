@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,9 +35,9 @@ public class PostController {
         PostRequestDTO postRequestDTO = new PostRequestDTO();
         postRequestDTO.setContent(content);
         postRequestDTO.setFiles(files);
-
         Post savedPost = postService.createPost(postRequestDTO, principal.getName());
-        return ResponseEntity.ok(postMapper.toPostResponseDTO(savedPost));
+        Map<String, Long> count = postService.getCountLikeAndComment(savedPost.getId());
+        return ResponseEntity.ok(postMapper.toPostResponseDTO(savedPost, count.get("likeCount"), count.get("commentCount")));
     }
 
     @PutMapping("/{id}")
@@ -50,20 +51,25 @@ public class PostController {
                 .files(files)
                 .build();
         Post updatedPost = postService.updatePost(id, postRequestDTO, principal.getName());
-        return ResponseEntity.ok(postMapper.toPostResponseDTO(updatedPost));
+        Map<String, Long> count = postService.getCountLikeAndComment(updatedPost.getId());
+        return ResponseEntity.ok(postMapper.toPostResponseDTO(updatedPost, count.get("likeCount"), count.get("commentCount")));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getPost(@PathVariable Long id) {
         Post post = postService.findById(id);
-        return ResponseEntity.ok(postMapper.toPostResponseDTO(post));
+        Map<String, Long> count = postService.getCountLikeAndComment(id);
+        return ResponseEntity.ok(postMapper.toPostResponseDTO(post, count.get("likeCount"), count.get("commentCount")));
     }
 
     @GetMapping("/list-posts")
     public ResponseEntity<Page<?>> getAllPosts(@RequestParam(defaultValue = "0") int page,
                                                @RequestParam(defaultValue = "3") int size) {
         Page<Post> posts = postService.findAll(page, size);
-        Page<PostResponseDTO> postResponseDTO = posts.map(postMapper::toPostResponseDTO);
+        Page<PostResponseDTO> postResponseDTO = posts.map(post -> {
+            Map<String, Long> count = postService.getCountLikeAndComment(post.getId());
+            return postMapper.toPostResponseDTO(post, count.get("likeCount"), count.get("commentCount"));
+        });
         return ResponseEntity.ok(postResponseDTO);
     }
 
@@ -78,7 +84,10 @@ public class PostController {
                                                    @RequestParam(defaultValue = "0") int page,
                                                    @RequestParam(defaultValue = "3") int size){
         Page<Post> posts = postService.findAllByUserId(userId, page, size);
-        Page<PostResponseDTO> dtos = posts.map(postMapper::toPostResponseDTO);
+        Page<PostResponseDTO> dtos = posts.map(post -> {
+            Map<String, Long> count = postService.getCountLikeAndComment(post.getId());
+            return postMapper.toPostResponseDTO(post, count.get("likeCount"), count.get("commentCount"));
+        });
         return ResponseEntity.ok(dtos);
     }
 

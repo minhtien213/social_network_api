@@ -80,6 +80,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/profile/list-profiles").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/post/list-posts").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/comment/list-comments").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/comment/{postId}/count").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/like/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/friends").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/follows/*/followers").hasAnyRole("USER", "ADMIN")

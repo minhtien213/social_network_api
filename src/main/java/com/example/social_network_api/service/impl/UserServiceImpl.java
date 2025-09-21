@@ -345,4 +345,11 @@ public class UserServiceImpl implements UserService {
         user.setEnabled(true);
         userRepository.save(user);
     }
+
+    @Override
+    public Page<User> findByFirstNameAndLastName(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<User> users = userRepository.findByFirstNameAndLastName(keyword, pageable);
+        return users;
+    }
 }

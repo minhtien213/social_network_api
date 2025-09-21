@@ -111,4 +111,10 @@ public class CommentServiceImpl implements CommentService {
         }
         return commentRepository.findAllByPost_Id(postId);
     }
+
+    @Override
+    public Long countCommentByPostId(Long postId) {
+        Post existingPost = postService.findById(postId);
+        return commentRepository.countCommentByPostId(existingPost.getId());
+    }
 }

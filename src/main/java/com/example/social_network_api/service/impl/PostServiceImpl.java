@@ -1,6 +1,8 @@
 package com.example.social_network_api.service.impl;
 
 import com.example.social_network_api.exception.custom.ForbiddenException;
+import com.example.social_network_api.repository.CommentRepository;
+import com.example.social_network_api.repository.LikeRepository;
 import com.example.social_network_api.service.UserService;
 import com.example.social_network_api.utils.AuthUtils;
 import com.example.social_network_api.utils.UploadsUtils;
@@ -23,12 +25,15 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
     private final UserService userService;
 
     @Override
@@ -117,4 +122,13 @@ public class PostServiceImpl implements PostService {
         return postRepository.findAllByUserId(userId, pageable);
     }
 
+    @Override
+    public Map<String, Long> getCountLikeAndComment(Long postId) {
+        Post existingPost = this.findById(postId);
+        Long likeCount = likeRepository.countLikedByPostId(existingPost.getId());
+        Long commentCount = commentRepository.countCommentByPostId(existingPost.getId());
+
+        return Map.of("likeCount", likeCount,
+                "commentCount", commentCount);
+    }
 }

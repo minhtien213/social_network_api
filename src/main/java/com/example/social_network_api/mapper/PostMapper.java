@@ -27,9 +27,11 @@ public interface PostMapper {
     Post toPost(PostRequestDTO postRequestDTO, User user);
 
 
-    @Mapping(target = "username", source = "user.username")
+    @Mapping(target = "username", source = "post.user.username")
     @Mapping(target = "postMediaList", expression = "java(mapMediaUrls(post))")
-    PostResponseDTO toPostResponseDTO(Post post);
+    @Mapping(target = "likeCount", source = "likeCount")
+    @Mapping(target = "commentCount", source = "commentCount")
+    PostResponseDTO toPostResponseDTO(Post post, Long likeCount, Long commentCount);
 
     //object -> list string -> trả về client
     default List<String> mapMediaUrls(Post post){

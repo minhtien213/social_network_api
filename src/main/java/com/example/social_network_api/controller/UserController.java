@@ -7,6 +7,7 @@ import com.example.social_network_api.entity.User;
 import com.example.social_network_api.mapper.UserMapper;
 import com.example.social_network_api.service.UserService;
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,15 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userService.deleteById(id);
         return ResponseEntity.ok("User has been deleted");
+    }
+
+    @GetMapping("/display-fullname")
+    public ResponseEntity<Page<?>> findByFirstNameAndLastName(@RequestParam("keyword") String keyword,
+                                                              @RequestParam(defaultValue = "0") int page,
+                                                              @RequestParam(defaultValue = "3") int size){
+        Page<User> users = userService.findByFirstNameAndLastName(keyword, page, size);
+        Page<UserResponseDTO> dtos = users.map(userMapper::toUserResponseDTO);
+        return ResponseEntity.ok(dtos);
     }
 
 

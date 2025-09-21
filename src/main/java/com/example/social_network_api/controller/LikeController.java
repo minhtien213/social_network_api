@@ -38,8 +38,8 @@ public class LikeController {
 
     // đếm số like bài post
     @GetMapping("/postId/{postId}/count")
-    public ResponseEntity<?> getLikedPostCount(@PathVariable Long postId){
-        return ResponseEntity.ok(likeService.getLikedPostCount(postId)) ;
+    public ResponseEntity<?> countLikedByPostId(@PathVariable Long postId){
+        return ResponseEntity.ok(likeService.countLikedByPostId(postId)) ;
     }
 
     //kiểm tra user đã like bài post chưa
