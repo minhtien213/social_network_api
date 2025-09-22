@@ -31,30 +31,22 @@ public class ProfileContoller {
                                            @RequestPart(value = "avatarUrl", required = false) MultipartFile avatarUrl,
                                            Principal principal) {
         Profile savedProfile = profileService.createProfile(profileRequestDTO, avatarUrl, principal.getName());
-        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(
-                savedProfile,
-                savedProfile.getUser().getFollowerCount(),
-                savedProfile.getUser().getFollowingCount())
-        );
+        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(savedProfile));
     }
 
-    @PutMapping("/update/{userId}")
+    @PutMapping("/userId/{userId}")
     public ResponseEntity<?> updateProfile(@PathVariable Long userId,
                                            @Valid @RequestPart ProfileRequestDTO profileRequestDTO,
                                            @RequestPart(value = "avatarUrl", required = false) MultipartFile avatarUrl
     ) {
         Profile updatedProfile = profileService.updateProfile(userId, profileRequestDTO, avatarUrl);
-        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(updatedProfile,
-                updatedProfile.getUser().getFollowerCount(),
-                updatedProfile.getUser().getFollowingCount()
-        ));
+        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(updatedProfile));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getProfile(@PathVariable Long id) {
         Profile profile = profileService.findById(id);
-        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(profile,
-                profile.getUser().getFollowerCount(), profile.getUser().getFollowingCount()));
+        return ResponseEntity.ok().body(profileMapper.toProfileResponseDTO(profile));
     }
 
     @GetMapping("/search")
@@ -63,10 +55,7 @@ public class ProfileContoller {
         Page<Profile> profiles = profileService.findByFullName(keyword, page, size);
 
         Page<ProfileResponseDTO> dtos = profiles
-                .map(profile -> profileMapper.toProfileResponseDTO(
-                        profile,
-                        profile.getUser().getFollowerCount(),
-                        profile.getUser().getFollowingCount()));
+                .map(profile -> profileMapper.toProfileResponseDTO(profile));
 
         return ResponseEntity.ok().body(dtos);
     }
@@ -75,11 +64,7 @@ public class ProfileContoller {
     public ResponseEntity<Page<?>> getAllProfiles(@RequestParam(defaultValue = "0") int page,
                                                   @RequestParam(defaultValue = "3") int size) {
         Page<Profile> profiles = profileService.findAll(page, size);
-        Page<ProfileResponseDTO> profilesResponse = profiles.map(profile -> profileMapper.toProfileResponseDTO(
-                profile,
-                profile.getUser().getFollowerCount(),
-                profile.getUser().getFollowingCount())
-        );
+        Page<ProfileResponseDTO> profilesResponse = profiles.map(profile -> profileMapper.toProfileResponseDTO(profile));
         return ResponseEntity.ok().body(profilesResponse);
     }
 

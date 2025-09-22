@@ -63,8 +63,10 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         if(avatarUrl != null) {
-            String avatarPath = UploadsUtils.uploadFile(avatarUrl);
-            existingProfile.setAvatarUrl(avatarPath);
+            String avatarPath = existingProfile.getAvatarUrl();
+            UploadsUtils.deleteFile(avatarPath);
+            String newAvatarPath = UploadsUtils.uploadFile(avatarUrl);
+            existingProfile.setAvatarUrl(newAvatarPath);
         }
 
         if (profileRequestDTO.getFullName() != null) {
@@ -85,7 +87,6 @@ public class ProfileServiceImpl implements ProfileService {
         if (profileRequestDTO.getGender() != null) {
             existingProfile.setGender(profileRequestDTO.getGender());
         }
-        existingProfile.setUpdatedAt(LocalDateTime.now());
 
         Profile profileSaved = profileRepository.save(existingProfile);
         return profileSaved;
@@ -97,7 +98,7 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Profile with id " + id + " not found")
         );
-        profileRepository.deleteById(id);
+        profileRepository.deleteById(profile.getId());
     }
 
     @Override

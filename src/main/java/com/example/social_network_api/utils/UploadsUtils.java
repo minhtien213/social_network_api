@@ -60,4 +60,19 @@ public class UploadsUtils {
         }
     }
 
+    public static void deleteFile(String filePath) {
+        try {
+            if (filePath != null) {
+                // bỏ dấu "/" ở đầu nếu có
+                if (filePath.startsWith("/")) {
+                    filePath = filePath.substring(1); //lấy từ index = 1 trở đi
+                }
+                Path path = Paths.get(filePath);
+                Files.deleteIfExists(path);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot delete file: " + e.getMessage());
+        }
+    }
+
 }

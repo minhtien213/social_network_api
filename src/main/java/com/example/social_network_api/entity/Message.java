@@ -34,7 +34,7 @@ public class Message {
     @Column(name = "is_read", nullable = false)
     private boolean isRead;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

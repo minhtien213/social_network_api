@@ -12,7 +12,6 @@ import com.example.social_network_api.exception.custom.ConflictException;
 import com.example.social_network_api.exception.custom.ForbiddenException;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.repository.PasswordResetTokenRepositoty;
-import com.example.social_network_api.repository.ProfileRepository;
 import com.example.social_network_api.repository.UserRepository;
 import com.example.social_network_api.security.jwt.JWTUtils;
 import com.example.social_network_api.service.*;
@@ -20,7 +19,6 @@ import com.example.social_network_api.utils.AuthUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +45,6 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JWTUtils jwtUtils;
@@ -268,7 +265,6 @@ public class UserServiceImpl implements UserService {
         if (updateUserRequestDTO.getPassword() != null && !updateUserRequestDTO.getPassword().isBlank()) {
             existingUser.setPassword(passwordEncoder.encode(updateUserRequestDTO.getPassword()));
         }
-        existingUser.setUpdatedAt(LocalDateTime.now());
 
         // Chỉ set các field != null
         // userMapper.updateUserFromDto(userRequestDTO, existingUser);
@@ -318,7 +314,6 @@ public class UserServiceImpl implements UserService {
         if(!AuthUtils.isAdmin()){
             throw new ForbiddenException("Unauthorized.");
         }
-        profileRepository.deleteByUserId(user.getId());
         userRepository.deleteById(user.getId());
     }
 

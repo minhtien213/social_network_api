@@ -14,7 +14,9 @@ public interface ProfileMapper {
     @Mapping(target = "user", source = "user")
     Profile toProfile(ProfileRequestDTO profileRequestDTO, User user);
 
-    @Mapping(target = "followerCount", source = "followerCount")
-    @Mapping(target = "followingCount", source = "followingCount")
-    ProfileResponseDTO toProfileResponseDTO(Profile profile, int followerCount, int followingCount);
+    @Mapping(target = "followerCount", source = "user.followerCount")
+    @Mapping(target = "followingCount", source = "user.followingCount")
+    @Mapping(target = "createdAt", source = "profile.createdAt")
+    @Mapping(target = "updatedAt", source = "profile.updatedAt")
+    ProfileResponseDTO toProfileResponseDTO(Profile profile);
 }

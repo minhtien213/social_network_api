@@ -64,7 +64,7 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likes;
 
-    @OneToMany(mappedBy = "following",  cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "follower",  cascade = CascadeType.ALL, orphanRemoval = true)
     private Collection<Follow> following; //mình theo dõi
 
     @OneToMany(mappedBy = "following",  cascade = CascadeType.ALL, orphanRemoval = true)

@@ -3,6 +3,7 @@ package com.example.social_network_api.service.impl;
 import com.example.social_network_api.exception.custom.ForbiddenException;
 import com.example.social_network_api.repository.CommentRepository;
 import com.example.social_network_api.repository.LikeRepository;
+import com.example.social_network_api.repository.PostMediaRepository;
 import com.example.social_network_api.service.UserService;
 import com.example.social_network_api.utils.AuthUtils;
 import com.example.social_network_api.utils.UploadsUtils;
@@ -35,6 +36,7 @@ public class PostServiceImpl implements PostService {
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
     private final UserService userService;
+    private final PostMediaRepository postMediaRepository;
 
     @Override
     @Transactional
@@ -42,6 +44,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
         );
+        deleteMediaFromDir(id);
         postRepository.delete(post);
     }
 
@@ -89,15 +92,17 @@ public class PostServiceImpl implements PostService {
                 () -> new ResourceNotFoundException("Post with id " + id + " not found")
         );
 
-        if (!existingPost.getUser().getUsername().equals(username)) {
+        if (!existingPost.getUser().getUsername().equals(username) && !AuthUtils.isAdmin()) {
             throw new UnauthorizedException("Unauthorized user");
         }
 
         existingPost.setContent(postRequestDTO.getContent());
-        existingPost.setUpdatedAt(LocalDateTime.now());
 
         // nếu client gửi files mới
         if (postRequestDTO.getFiles() != null) {
+            // xóa file trong /upload
+            deleteMediaFromDir(id);
+
             //clear hết media cũ rồi add lại
             existingPost.getPostMediaList().clear();
 
@@ -130,5 +135,15 @@ public class PostServiceImpl implements PostService {
 
         return Map.of("likeCount", likeCount,
                 "commentCount", commentCount);
+    }
+
+    void deleteMediaFromDir(Long id){
+        List<PostMedia> postMedias = postMediaRepository.findAllByPostId(id);
+        if(postMedias != null && !postMedias.isEmpty()){
+            postMedias.stream().forEach(postMedia -> {
+                String mediaUrl = postMedia.getMediaUrl();
+                UploadsUtils.deleteFile(mediaUrl);
+            });
+        }
     }
 }

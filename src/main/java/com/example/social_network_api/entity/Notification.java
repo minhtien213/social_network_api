@@ -32,7 +32,7 @@ public class Notification {
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
 
-    @Column(name = "create_at", nullable = false, updatable = false)
+    @Column( nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

@@ -1,18 +1,13 @@
 package com.example.social_network_api.service.impl;
 
-import com.example.social_network_api.dto.respone.NotificationResponseDTO;
 import com.example.social_network_api.entity.Notification;
 import com.example.social_network_api.entity.User;
 import com.example.social_network_api.exception.custom.ForbiddenException;
 import com.example.social_network_api.exception.custom.ResourceNotFoundException;
 import com.example.social_network_api.mapper.NotificationMapper;
-import com.example.social_network_api.repository.CommentRepository;
-import com.example.social_network_api.repository.FollowRepository;
-import com.example.social_network_api.repository.LikeRepository;
 import com.example.social_network_api.repository.NotificationRepository;
 import com.example.social_network_api.service.NotificationService;
 import com.example.social_network_api.service.UserService;
-import com.example.social_network_api.utils.AuthUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,9 +23,6 @@ import org.springframework.stereotype.Service;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
-    private final LikeRepository likeRepository;
-    private final FollowRepository followRepository;
-    private final CommentRepository commentRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final UserService userService;
     private final NotificationMapper notificationMapper;

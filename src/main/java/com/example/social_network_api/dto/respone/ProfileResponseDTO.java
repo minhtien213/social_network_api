@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Getter
@@ -22,6 +23,8 @@ public class ProfileResponseDTO {
     private boolean gender;
     private String location;
     private String phone;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private int followerCount;
     private int followingCount;
 }

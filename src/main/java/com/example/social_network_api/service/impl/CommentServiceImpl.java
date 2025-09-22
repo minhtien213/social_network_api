@@ -67,6 +67,7 @@ public class CommentServiceImpl implements CommentService {
         if(existingComment == null) {
             throw new ResourceNotFoundException("Comment Not Found");
         }
+        //required content or media
         if ((commentRequestDTO.getContent() == null || commentRequestDTO.getContent().isBlank())
                 && (commentRequestDTO.getMediaUrl() == null || commentRequestDTO.getMediaUrl().isEmpty())) {
             throw new BadRequestException("Content or mediaUrl is required");
@@ -74,10 +75,16 @@ public class CommentServiceImpl implements CommentService {
         if(!existingComment.getUser().getUsername().equals(username) && !AuthUtils.isAdmin()) {
             throw new UnauthorizedException("Unauthorized");
         }
-        String mediaUrl = UploadsUtils.uploadFile(commentRequestDTO.getMediaUrl());
-        existingComment.setContent(commentRequestDTO.getContent());
-        existingComment.setMediaUrl(mediaUrl);
-        existingComment.setUpdatedAt(LocalDateTime.now());
+
+        if(commentRequestDTO.getMediaUrl() != null && !commentRequestDTO.getMediaUrl().isEmpty()){
+            String mediaPath = existingComment.getMediaUrl();
+            UploadsUtils.deleteFile(mediaPath);
+            String mediaUrl = UploadsUtils.uploadFile(commentRequestDTO.getMediaUrl());
+            existingComment.setMediaUrl(mediaUrl);
+        }
+        if(commentRequestDTO.getContent() != null) {
+            existingComment.setContent(commentRequestDTO.getContent());
+        }
         return commentRepository.save(existingComment);
     }
 
@@ -87,6 +94,8 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Comment not found with id " + id)
         );
+        String mediaPath = comment.getMediaUrl();
+        UploadsUtils.deleteFile(mediaPath);
         commentRepository.deleteById(id);
     }
 
